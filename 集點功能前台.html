@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台灣啤酒臺中營業處-集點活動</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; padding: 20px; text-align: center; }
+        .card { max-width: 400px; margin: 0 auto; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-custom { background-color: #00B900; color: white; width: 100%; padding: 12px; font-size: 18px; border: none; border-radius: 8px; }
+        .btn-custom:hover { background-color: #009900; color: white; }
+        #status { margin-top: 15px; color: #666; font-size: 14px; }
+        .loading { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="card p-4">
+        <h3 class="mb-3">🍺 集點活動測試</h3>
+        <p>歡迎參加！點擊下方按鈕領取點數。</p>
+        
+        <div id="userInfo" class="mb-3">
+            <p>你好，<span id="displayName">讀取中...</span></p>
+        </div>
+
+        <button id="btnPoints" class="btn-custom" onclick="sendPoints()">
+            領取 10 點
+        </button>
+
+        <p id="status"></p>
+        <div id="loader" class="spinner-border text-success loading" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <script>
+        // ================= 設定區 (請修改這裡) =================
+        
+        // 1. 填入您的 Google Apps Script 網頁應用程式網址 (剛剛部署的那串)
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwYI4M2RuswYcxoMy98Gr8WLinypnvZwrYAwtHsD84rX0unB26FKKx4u0dcuB9Ojo62/exec"; 
+
+        // 2. 填入您的 LIFF ID (等等教您怎麼申請，先留空或填入假的)
+        const MY_LIFF_ID = "0918332817"; 
+
+        // ======================================================
+
+        // 初始化 LIFF
+        function initializeLiff() {
+            liff.init({ liffId: MY_LIFF_ID })
+                .then(() => {
+                    if (!liff.isLoggedIn()) {
+                        liff.login();
+                    } else {
+                        getUserProfile();
+                    }
+                })
+                .catch((err) => {
+                    document.getElementById('status').innerText = "LIFF 初始化失敗：" + err;
+                });
+        }
+
+        // 取得使用者資料
+        function getUserProfile() {
+            liff.getProfile()
+                .then(profile => {
+                    document.getElementById('displayName').innerText = profile.displayName;
+                })
+                .catch((err) => {
+                    console.error('個資抓取錯誤', err);
+                });
+        }
+
+        // 傳送點數給 Google Sheet
+        function sendPoints() {
+            const btn = document.getElementById('btnPoints');
+            const loader = document.getElementById('loader');
+            const status = document.getElementById('status');
+
+            // 鎖定按鈕避免重複點擊
+            btn.disabled = true;
+            btn.innerText = "處理中...";
+            loader.style.display = 'inline-block';
+
+            liff.getProfile().then(profile => {
+                const payload = {
+                    userId: profile.userId,
+                    points: 10,  // 這裡設定每次給幾點
+                    note: "LIFF前端點擊"
+                };
+
+                // 使用 fetch 發送資料 (利用 text/plain 避開 CORS 預檢)
+                fetch(GAS_API_URL, {
+                    method: "POST",
+                    mode: "no-cors", // 重要：GAS 的特性需要設為 no-cors，雖然拿不到回傳值，但能成功寫入
+                    headers: {
+                        "Content-Type": "text/plain"
+                    },
+                    body: JSON.stringify(payload)
+                }).then(() => {
+                    // 因為 no-cors 模式無法讀取回傳內容，我們假設只要沒報錯就是成功
+                    status.innerText = "✅ 集點成功！請查看 Google Sheet";
+                    status.style.color = "green";
+                    
+                    // 重置按鈕
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.innerText = "再領一次 (測試用)";
+                        loader.style.display = 'none';
+                    }, 2000);
+                }).catch(err => {
+                    status.innerText = "❌ 發生錯誤：" + err;
+                    status.style.color = "red";
+                    btn.disabled = false;
+                    loader.style.display = 'none';
+                });
+            });
+        }
+
+        // 網頁載入後立即執行
+        window.onload = initializeLiff;
+    </script>
+</body>
+</html>
