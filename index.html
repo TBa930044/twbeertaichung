@@ -3,122 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>台灣啤酒臺中營業處-集點活動</title>
+    <title>集點核銷</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f8f9fa; padding: 20px; text-align: center; }
-        .card { max-width: 400px; margin: 0 auto; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .btn-custom { background-color: #00B900; color: white; width: 100%; padding: 12px; font-size: 18px; border: none; border-radius: 8px; }
-        .btn-custom:hover { background-color: #009900; color: white; }
-        #status { margin-top: 15px; color: #666; font-size: 14px; }
-        .loading { display: none; }
+        body { background-color: #f0f2f5; padding: 20px; }
+        .card { border-radius: 12px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .btn-confirm { background-color: #06c755; color: white; width: 100%; padding: 12px; font-weight: bold; }
+        .store-tag { background: #e9ecef; padding: 5px 10px; border-radius: 20px; font-size: 12px; color: #555; }
     </style>
 </head>
 <body>
 
-    <div class="card p-4">
-        <h3 class="mb-3">🍺 集點活動測試</h3>
-        <p>歡迎參加！點擊下方按鈕領取點數。</p>
+    <div class="card p-4 text-center">
+        <h4 class="mb-2">🍺 現場集點</h4>
+        <div class="mb-4"><span id="storeDisplay" class="store-tag">讀取店家資訊中...</span></div>
+
+        <div class="mb-3 text-start">
+            <label class="form-label">輸入點數 (消費瓶數)</label>
+            <input type="number" id="inputPoints" class="form-control form-control-lg text-center" value="1" min="1">
+        </div>
+
+        <div class="mb-4 text-start">
+            <label class="form-label text-danger">店員核銷碼 (請交給店員)</label>
+            <input type="password" id="inputPin" class="form-control form-control-lg text-center" placeholder="****" maxlength="4">
+        </div>
+
+        <button id="btnSubmit" class="btn btn-confirm btn-lg" onclick="verifyAndSend()">確認核銷</button>
         
-        <div id="userInfo" class="mb-3">
-            <p>你好，<span id="displayName">讀取中...</span></p>
-        </div>
-
-        <button id="btnPoints" class="btn-custom" onclick="sendPoints()">
-            領取 10 點
-        </button>
-
-        <p id="status"></p>
-        <div id="loader" class="spinner-border text-success loading" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
+        <p id="status" class="mt-3 text-secondary" style="font-size:14px;"></p>
     </div>
 
     <script>
-        // ================= 設定區 (請修改這裡) =================
-        
-        // 1. 填入您的 Google Apps Script 網頁應用程式網址 (剛剛部署的那串)
+        // ================= 設定區 =================
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwYI4M2RuswYcxoMy98Gr8WLinypnvZwrYAwtHsD84rX0unB26FKKx4u0dcuB9Ojo62/exec"; 
-
-        // 2. 填入您的 LIFF ID (等等教您怎麼申請，先留空或填入假的)
         const MY_LIFF_ID = "2008765350-4KBTGWMz"; 
+        // ==========================================
 
-        // ======================================================
+        // 從網址讀取 StoreID (例如 ?store=store01)
+        const urlParams = new URLSearchParams(window.location.search);
+        // 如果網址沒帶參數，預設為 store01 (測試用)
+        const currentStoreId = urlParams.get('store') || 'store01';
 
-        // 初始化 LIFF
+        document.getElementById('storeDisplay').innerText = "店家代碼: " + currentStoreId;
+
         function initializeLiff() {
-            liff.init({ liffId: MY_LIFF_ID })
-                .then(() => {
-                    if (!liff.isLoggedIn()) {
-                        liff.login();
-                    } else {
-                        getUserProfile();
-                    }
-                })
-                .catch((err) => {
-                    document.getElementById('status').innerText = "LIFF 初始化失敗：" + err;
-                });
+            liff.init({ liffId: MY_LIFF_ID }).then(() => {
+                if (!liff.isLoggedIn()) { liff.login(); }
+            });
         }
 
-        // 取得使用者資料
-        function getUserProfile() {
-            liff.getProfile()
-                .then(profile => {
-                    document.getElementById('displayName').innerText = profile.displayName;
-                })
-                .catch((err) => {
-                    console.error('個資抓取錯誤', err);
-                });
-        }
-
-        // 傳送點數給 Google Sheet
-        function sendPoints() {
-            const btn = document.getElementById('btnPoints');
-            const loader = document.getElementById('loader');
+        function verifyAndSend() {
+            const points = document.getElementById('inputPoints').value;
+            const pin = document.getElementById('inputPin').value;
             const status = document.getElementById('status');
+            const btn = document.getElementById('btnSubmit');
 
-            // 鎖定按鈕避免重複點擊
+            if (!pin) { alert("請輸入店員核銷碼"); return; }
+
             btn.disabled = true;
-            btn.innerText = "處理中...";
-            loader.style.display = 'inline-block';
+            btn.innerText = "驗證中...";
+            status.innerText = "";
 
             liff.getProfile().then(profile => {
                 const payload = {
                     userId: profile.userId,
-                    points: 10,  // 這裡設定每次給幾點
-                    note: "LIFF前端點擊"
+                    points: points,
+                    storeId: currentStoreId,
+                    pin: pin
                 };
 
-                // 使用 fetch 發送資料 (利用 text/plain 避開 CORS 預檢)
                 fetch(GAS_API_URL, {
                     method: "POST",
-                    mode: "no-cors", // 重要：GAS 的特性需要設為 no-cors，雖然拿不到回傳值，但能成功寫入
-                    headers: {
-                        "Content-Type": "text/plain"
-                    },
+                    mode: "no-cors",
+                    headers: { "Content-Type": "text/plain" },
                     body: JSON.stringify(payload)
                 }).then(() => {
-                    // 因為 no-cors 模式無法讀取回傳內容，我們假設只要沒報錯就是成功
-                    status.innerText = "✅ 集點成功！請查看 Google Sheet";
+                    // 因為 no-cors 看不到回傳結果，我們只能假設請求發送成功
+                    // 為了使用者體驗，這裡做一個簡單的模擬成功 UI
+                    status.innerText = "✅ 請求已發送！若密碼正確點數將入帳";
                     status.style.color = "green";
                     
-                    // 重置按鈕
+                    // 清空密碼欄位防止重複按
+                    document.getElementById('inputPin').value = "";
+                    
                     setTimeout(() => {
                         btn.disabled = false;
-                        btn.innerText = "再領一次 (測試用)";
-                        loader.style.display = 'none';
+                        btn.innerText = "確認核銷";
+                        liff.closeWindow(); // 成功後關閉視窗
                     }, 2000);
-                }).catch(err => {
-                    status.innerText = "❌ 發生錯誤：" + err;
-                    status.style.color = "red";
-                    btn.disabled = false;
-                    loader.style.display = 'none';
                 });
             });
         }
 
-        // 網頁載入後立即執行
         window.onload = initializeLiff;
     </script>
 </body>
