@@ -2,75 +2,248 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>台酒會員服務</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TTL 會員專區</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <style>
-        body { background-color: #f8f9fa; font-family: "Microsoft JhengHei", sans-serif; }
-        .nav-pills .nav-link.active { background-color: #008800; } 
-        .nav-link { color: #555; font-weight: bold; }
-        .card { border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-radius: 15px; }
-        .btn-main { background-color: #008800; color: white; width: 100%; padding: 12px; font-weight: bold; border-radius: 8px; }
-        .reward-item { border-bottom: 1px solid #eee; padding: 15px 0; display: flex; justify-content: space-between; align-items: center; }
-        .badge-cost { background-color: #ffc107; color: #333; font-size: 0.9em; padding: 5px 10px; border-radius: 20px; }
-        /* 庫存標籤 */
-        .stock-tag { font-size: 0.8em; color: #666; margin-left: 5px; }
-        .stock-tag.out { color: red; font-weight: bold; }
+        :root {
+            --primary-color: #006633; /* 台啤深綠 */
+            --accent-color: #FFC107;  /* 金牌黃 */
+            --bg-color: #f4f6f8;
+        }
+        body { background-color: var(--bg-color); font-family: "Microsoft JhengHei", sans-serif; padding-bottom: 80px; }
+        
+        /* 1. 頂部會員卡區塊 */
+        .header-section {
+            background: linear-gradient(135deg, #004d26 0%, #008040 100%);
+            color: white;
+            padding: 20px;
+            border-bottom-left-radius: 25px;
+            border-bottom-right-radius: 25px;
+            box-shadow: 0 4px 15px rgba(0,80,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        /* 裝飾用的背景圓圈 */
+        .header-bg-circle {
+            position: absolute;
+            top: -20px; right: -20px;
+            width: 150px; height: 150px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        .store-badge {
+            background: rgba(0,0,0,0.3);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+        }
+        .balance-card {
+            margin-top: 15px;
+            text-align: center;
+        }
+        .balance-number {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--accent-color);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            line-height: 1.1;
+        }
+        .balance-label { font-size: 0.9rem; opacity: 0.9; }
+
+        /* 2. 卡片通用樣式 */
+        .custom-card {
+            background: white;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            padding: 20px;
+        }
+        
+        /* 3. 贈品網格排版 */
+        .reward-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* 兩欄 */
+            gap: 15px;
+        }
+        .reward-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+        }
+        .reward-img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            background-color: #eee;
+        }
+        .reward-body {
+            padding: 10px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .reward-title {
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+            line-height: 1.3;
+        }
+        .reward-meta {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .stock-badge { color: var(--primary-color); }
+        .stock-badge.out { color: #dc3545; }
+        
+        /* 4. 底部導覽列 (Sticky Bottom) */
+        .bottom-nav {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            background: white;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            display: flex;
+            padding: 5px;
+            z-index: 999;
+        }
+        .nav-btn {
+            flex: 1;
+            text-align: center;
+            padding: 12px 0;
+            border-radius: 40px;
+            color: #999;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .nav-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 10px rgba(0,102,51,0.3);
+        }
+        .nav-btn i { margin-right: 5px; }
+
+        /* 輸入框美化 */
+        .form-control-custom {
+            border: 2px solid #eee;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+        .form-control-custom:focus {
+            border-color: var(--primary-color);
+            box-shadow: none;
+        }
+        .btn-action {
+            width: 100%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-top: 15px;
+        }
+        .btn-action:active { transform: scale(0.98); }
+        .btn-redeem {
+            width: 100%;
+            padding: 6px;
+            font-size: 0.9rem;
+            border-radius: 6px;
+        }
+
+        /* 隱藏區塊 */
+        .d-none { display: none; }
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div class="container py-3">
-        <div class="d-flex justify-content-between align-items-center mb-3 px-2">
-            <h5 class="m-0 fw-bold text-success">🍺 會員集點</h5>
-            <span class="badge bg-secondary" id="storeDisplay">讀取店家...</span>
+    <div class="header-section">
+        <div class="header-bg-circle"></div>
+        <div class="d-flex justify-content-between align-items-center">
+            <div style="font-weight:bold; font-size:1.1rem;">
+                <i class="fas fa-beer"></i> 台灣啤酒
+            </div>
+            <div class="store-badge" id="storeDisplay">
+                <i class="fas fa-map-marker-alt me-1"></i> 載入中...
+            </div>
         </div>
 
-        <ul class="nav nav-pills nav-fill mb-3 bg-white p-1 rounded-3 shadow-sm" id="pills-tab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="pills-earn-tab" data-bs-toggle="pill" data-bs-target="#pills-earn" type="button">我要集點</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="pills-redeem-tab" data-bs-toggle="pill" data-bs-target="#pills-redeem" type="button" onclick="loadRewards()">兌換贈品</button>
-            </li>
-        </ul>
-
-        <div class="tab-content">
-            <div class="tab-pane fade show active" id="pills-earn">
-                <div class="card p-4 text-center">
-                    <h4 class="mb-3">累積點數</h4>
-                    <div class="mb-3 text-start">
-                        <label class="form-label">消費瓶數/金額</label>
-                        <input type="number" id="inputPoints" class="form-control form-control-lg text-center" value="1" min="1">
-                    </div>
-                    <div class="mb-4 text-start">
-                        <label class="form-label text-danger">店員核銷碼</label>
-                        <input type="password" id="inputPinEarn" class="form-control form-control-lg text-center" placeholder="請交由店員輸入" maxlength="4">
-                    </div>
-                    <button id="btnEarn" class="btn btn-main btn-lg" onclick="doEarn()">確認集點</button>
-                </div>
-            </div>
-
-            <div class="tab-pane fade" id="pills-redeem">
-                <div class="card p-4">
-                    <h4 class="mb-1 text-center">好禮兌換</h4>
-                    <div class="text-center mb-3">
-                        <span class="text-muted">您的目前點數：</span>
-                        <span id="redeemBalanceDisplay" class="fw-bold text-success" style="font-size: 1.5em;">...</span>
-                    </div>
-                    <hr>
-                    <div id="rewardList">
-                        <p class="text-center text-muted py-3">載入中...</p>
-                    </div>
-                </div>
-            </div>
+        <div class="balance-card">
+            <div class="balance-number" id="headerPoints">---</div>
+            <div class="balance-label">目前持有點數 (Points)</div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="container mt-3">
+        
+        <div id="page-earn" class="fade-in">
+            <div class="custom-card">
+                <h5 class="fw-bold mb-4" style="color:#333;"><i class="fas fa-plus-circle me-2 text-success"></i>掃碼集點</h5>
+                
+                <div class="mb-3">
+                    <label class="text-muted small mb-1">消費瓶數 / 金額</label>
+                    <input type="number" id="inputPoints" class="form-control form-control-custom" value="1" min="1">
+                </div>
+
+                <div class="mb-3">
+                    <label class="text-muted small mb-1">請店員輸入核銷碼</label>
+                    <input type="password" id="inputPinEarn" class="form-control form-control-custom" placeholder="PIN Code" maxlength="4">
+                </div>
+
+                <button id="btnEarn" class="btn-action" onclick="doEarn()">確認集點</button>
+            </div>
+            
+            <div class="custom-card py-3 text-center" style="background:#e8f5e9; color:#2e7d32;">
+                <small><i class="fas fa-bullhorn me-1"></i> 週末限定：購買18天生啤點數加倍！</small>
+            </div>
+        </div>
+
+        <div id="page-redeem" class="d-none fade-in">
+            <h5 class="fw-bold ps-2 mb-3 border-start border-4 border-success"> &nbsp;好禮兌換專區</h5>
+            
+            <div id="rewardList" class="reward-grid">
+                <div class="text-center w-100 py-4" style="grid-column: span 2;">
+                    <div class="spinner-border text-success" role="status"></div>
+                    <div class="mt-2 text-muted small">檢查庫存中...</div>
+                </div>
+            </div>
+            
+            <div style="height: 100px;"></div> </div>
+
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-btn active" id="tab-earn" onclick="switchTab('earn')">
+            <i class="fas fa-qrcode"></i> 集點
+        </div>
+        <div class="nav-btn" id="tab-redeem" onclick="switchTab('redeem')">
+            <i class="fas fa-gift"></i> 兌換
+        </div>
+    </div>
 
     <script>
         // ================= 設定區 =================
@@ -82,14 +255,19 @@
         const currentStoreId = urlParams.get('store') || 'store01'; 
         let currentUserProfile = null;
 
+        // 初始化
         window.onload = function() {
             liff.init({ liffId: MY_LIFF_ID }).then(() => {
-                document.getElementById('storeDisplay').innerText = "店家: " + currentStoreId;
+                document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-store me-1"></i> ${currentStoreId}`;
+                
                 if (!liff.isLoggedIn()) {
                     liff.login();
                 } else {
                     liff.getProfile().then(profile => { 
-                        currentUserProfile = profile; 
+                        currentUserProfile = profile;
+                        // 初始先讀取一次點數 (偷偷呼叫 getRewards 雖然有點浪費但最簡單能拿到餘額)
+                        // 或我們等到使用者切換頁面時再更新也可。
+                        // 這裡為了體驗好，先顯示 --- 等使用者互動。
                     });
                 }
             }).catch(err => {
@@ -97,13 +275,31 @@
             });
         };
 
+        // 頁面切換邏輯
+        function switchTab(tabName) {
+            // 切換按鈕樣式
+            document.getElementById('tab-earn').classList.remove('active');
+            document.getElementById('tab-redeem').classList.remove('active');
+            document.getElementById('tab-' + tabName).classList.add('active');
+
+            // 切換頁面顯示
+            document.getElementById('page-earn').classList.add('d-none');
+            document.getElementById('page-redeem').classList.add('d-none');
+            document.getElementById('page-' + tabName).classList.remove('d-none');
+
+            // 如果切到兌換頁，觸發載入
+            if (tabName === 'redeem') {
+                loadRewards();
+            }
+        }
+
         function doEarn() {
             const pointsInput = document.getElementById('inputPoints');
             const pinInput = document.getElementById('inputPinEarn');
             const btn = document.getElementById('btnEarn');
             
             if (!pointsInput.value || pointsInput.value <= 0 || !pinInput.value) {
-                Swal.fire('提示', '請輸入正確資料', 'warning');
+                Swal.fire({ icon:'warning', title:'資料不完整', text:'請輸入點數與核銷碼' });
                 return;
             }
             if (!currentUserProfile) return;
@@ -111,28 +307,28 @@
             callApi(btn, {
                 action: 'add',
                 userId: currentUserProfile.userId,
-                displayName: currentUserProfile.displayName, // 新增這一行：傳送暱稱
                 points: pointsInput.value,
                 storeId: currentStoreId,
                 pin: pinInput.value
             }, (data) => {
                 pinInput.value = ""; 
+                updateBalanceUI(data.totalPoints); // 更新上方點數卡
                 Swal.fire({
-                    title: '集點成功！',
-                    html: `獲得 ${data.addedPoints} 點<br>總點數：<b style="color:red;font-size:1.5em">${data.totalPoints}</b>`,
-                    icon: 'success'
+                    icon: 'success',
+                    title: '集點成功',
+                    html: `<div style="font-size:1.2rem">獲得 <b>${data.addedPoints}</b> 點</div>`,
+                    timer: 2000,
+                    showConfirmButton: false
                 });
             });
         }
 
         function loadRewards() {
             if (!currentUserProfile) return;
-            
             const listDiv = document.getElementById('rewardList');
-            const balanceSpan = document.getElementById('redeemBalanceDisplay');
             
-            listDiv.innerHTML = "<p class='text-center text-muted'>檢查庫存中...</p>";
-            balanceSpan.innerText = "...";
+            // 保持 Loading 狀態
+            // listDiv.innerHTML = '...'; 
 
             fetch(GAS_API_URL, {
                 method: "POST",
@@ -140,59 +336,68 @@
                 body: JSON.stringify({ 
                     action: 'getRewards',
                     userId: currentUserProfile.userId,
-                    storeId: currentStoreId // 重要：傳店家ID去查庫存
+                    storeId: currentStoreId 
                 })
             })
             .then(res => res.json())
             .then(data => {
                 listDiv.innerHTML = ""; 
-                balanceSpan.innerText = data.userBalance !== undefined ? data.userBalance : "0";
+                
+                // 順便更新餘額
+                if(data.userBalance !== undefined) updateBalanceUI(data.userBalance);
 
                 if (!data.rewards || data.rewards.length === 0) {
-                    listDiv.innerHTML = "<p class='text-center'>目前無可兌換商品</p>";
+                    listDiv.innerHTML = "<p class='text-center w-100 mt-5 text-muted'>目前無可兌換商品</p>";
                     return;
                 }
 
                 data.rewards.forEach(item => {
-                    // 根據庫存決定按鈕狀態
                     const isOutOfStock = item.stock <= 0;
-                    const btnClass = isOutOfStock ? "btn-secondary" : "btn-outline-danger";
-                    const btnText = isOutOfStock ? "已兌換完畢" : "兌換";
-                    const btnAction = isOutOfStock ? "" : `onclick="askRedeem('${item.name}', ${item.cost})"`;
-                    const stockText = isOutOfStock ? "<span class='stock-tag out'>(缺貨)</span>" : `<span class='stock-tag'>剩 ${item.stock} 個</span>`;
+                    // 使用預設圖
+                    const imgUrl = item.image && item.image.startsWith('http') ? item.image : "https://via.placeholder.com/300x200?text=Taiwan+Beer";
+                    
+                    const btnHtml = isOutOfStock 
+                        ? `<button class="btn btn-secondary btn-redeem" disabled>已兌完</button>`
+                        : `<button class="btn btn-outline-success btn-redeem" onclick="askRedeem('${item.name}', ${item.cost})">兌換</button>`;
+                    
+                    const stockHtml = isOutOfStock
+                        ? `<span class="stock-badge out"><i class="fas fa-times-circle"></i> 缺貨</span>`
+                        : `<span class="stock-badge"><i class="fas fa-check-circle"></i> 剩 ${item.stock}</span>`;
 
                     const html = `
-                        <div class="reward-item">
-                            <div>
-                                <h5 class="mb-1 fw-bold">${item.name}</h5>
+                        <div class="reward-card">
+                            <img src="${imgUrl}" class="reward-img" alt="${item.name}">
+                            <div class="reward-body">
                                 <div>
-                                    <span class="badge-cost">💎 ${item.cost} 點</span>
-                                    ${stockText}
+                                    <div class="reward-title">${item.name}</div>
+                                    <div class="reward-meta">
+                                        <span class="text-warning fw-bold"><i class="fas fa-gem"></i> ${item.cost}</span>
+                                        ${stockHtml}
+                                    </div>
                                 </div>
+                                ${btnHtml}
                             </div>
-                            <button class="btn ${btnClass} btn-sm" ${btnAction} ${isOutOfStock ? "disabled" : ""}>
-                                ${btnText}
-                            </button>
                         </div>
                     `;
                     listDiv.insertAdjacentHTML('beforeend', html);
                 });
             })
             .catch(err => {
-                listDiv.innerHTML = "<p class='text-danger text-center'>載入失敗</p>";
+                listDiv.innerHTML = "<p class='text-danger text-center w-100'>載入失敗，請重試</p>";
             });
         }
 
         function askRedeem(rewardName, cost) {
             Swal.fire({
-                title: '確認兌換',
-                html: `確定要用 <b>${cost}</b> 點<br>兌換「${rewardName}」嗎？<br><br><small>請店員輸入核銷碼：</small>`,
+                title: '兌換確認',
+                html: `商品：<b>${rewardName}</b><br>扣除：<b class="text-danger">${cost}</b> 點<br><br><small>請店員輸入核銷碼</small>`,
                 input: 'password',
-                inputAttributes: { maxlength: 4, placeholder: '店員核銷碼' },
+                inputAttributes: { maxlength: 4, placeholder: 'PIN Code' },
                 showCancelButton: true,
-                confirmButtonText: '確認',
+                confirmButtonText: '確定兌換',
+                confirmButtonColor: '#006633',
                 cancelButtonText: '取消',
-                confirmButtonColor: '#d9534f'
+                reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
                     if (!result.value) { Swal.fire('錯誤', '請輸入核銷碼', 'error'); return; }
@@ -205,14 +410,12 @@
                         rewardName: rewardName,
                         cost: cost
                     }, (data) => {
-                        document.getElementById('redeemBalanceDisplay').innerText = data.totalPoints;
-                        // 兌換成功後重新載入列表以更新庫存
-                        loadRewards();
-                        
+                        updateBalanceUI(data.totalPoints);
+                        loadRewards(); // 重整列表
                         Swal.fire({
-                            title: '兌換成功！',
-                            html: `已兌換：${data.redeemedItem}<br>剩餘點數：<b>${data.totalPoints}</b>`,
-                            icon: 'success'
+                            icon: 'success',
+                            title: '兌換成功',
+                            html: `您已兌換 <b>${data.redeemedItem}</b>`,
                         });
                     });
                 }
@@ -230,15 +433,22 @@
             })
             .then(res => res.json())
             .then(data => {
-                if (btnElement) { btnElement.disabled = false; btnElement.innerText = "確認"; }
+                if (btnElement) { btnElement.disabled = false; btnElement.innerText = "確認集點"; }
                 Swal.close();
                 if (data.status === 'success') successCallback(data);
-                else Swal.fire('失敗', data.message, 'error');
+                else Swal.fire({ icon:'error', title:'Oops...', text: data.message });
             })
             .catch(err => {
                 if (btnElement) btnElement.disabled = false;
-                Swal.fire('錯誤', '連線異常', 'error');
+                Swal.fire('錯誤', '網路連線異常', 'error');
             });
+        }
+
+        function updateBalanceUI(points) {
+            // 加入數字跳動動畫效果
+            const el = document.getElementById('headerPoints');
+            el.innerText = points;
+            el.classList.add('fade-in'); // 簡單的動畫重置邏輯可以更複雜，這裡從簡
         }
     </script>
 </body>
