@@ -111,6 +111,7 @@
             callApi(btn, {
                 action: 'add',
                 userId: currentUserProfile.userId,
+                displayName: currentUserProfile.displayName, // 新增這一行：傳送暱稱
                 points: pointsInput.value,
                 storeId: currentStoreId,
                 pin: pinInput.value
