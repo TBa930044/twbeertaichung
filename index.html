@@ -21,74 +21,79 @@
         .header-section {
             background: linear-gradient(135deg, #004d26 0%, #008040 100%);
             color: white;
-            padding: 20px;
-            border-bottom-left-radius: 25px;
-            border-bottom-right-radius: 25px;
-            box-shadow: 0 4px 15px rgba(0,80,0,0.2);
+            padding: 25px 20px;
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0,80,0,0.25);
             position: relative;
             overflow: hidden;
         }
-        /* 裝飾用的背景圓圈 */
         .header-bg-circle {
             position: absolute;
-            top: -20px; right: -20px;
-            width: 150px; height: 150px;
-            background: rgba(255,255,255,0.1);
+            top: -30px; right: -30px;
+            width: 180px; height: 180px;
+            background: rgba(255,255,255,0.08);
             border-radius: 50%;
         }
+        .user-greeting {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
         .store-badge {
-            background: rgba(0,0,0,0.3);
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 0.85rem;
-            display: inline-flex;
-            align-items: center;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            backdrop-filter: blur(4px);
         }
         .balance-card {
-            margin-top: 15px;
+            margin-top: 20px;
             text-align: center;
         }
         .balance-number {
-            font-size: 3.5rem;
+            font-size: 3.8rem;
             font-weight: 800;
             color: var(--accent-color);
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            line-height: 1.1;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            line-height: 1;
         }
-        .balance-label { font-size: 0.9rem; opacity: 0.9; }
+        .balance-label { font-size: 0.9rem; opacity: 0.8; letter-spacing: 1px; }
 
-        /* 2. 卡片通用樣式 */
+        /* 2. 卡片與按鈕 */
         .custom-card {
             background: white;
             border: none;
             border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
             margin-bottom: 15px;
-            padding: 20px;
+            padding: 25px 20px;
         }
         
         /* 3. 贈品網格排版 */
         .reward-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr; /* 兩欄 */
+            grid-template-columns: 1fr 1fr; 
             gap: 15px;
         }
         .reward-card {
             background: white;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.06);
             display: flex;
             flex-direction: column;
+            transition: transform 0.2s;
         }
+        .reward-card:active { transform: scale(0.98); }
         .reward-img {
             width: 100%;
             height: 140px;
             object-fit: cover;
-            background-color: #eee;
+            background-color: #f0f0f0;
         }
         .reward-body {
-            padding: 10px;
+            padding: 12px;
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -100,27 +105,31 @@
             color: #333;
             margin-bottom: 5px;
             line-height: 1.3;
+            height: 2.6em; /* 限制兩行高 */
+            overflow: hidden;
         }
         .reward-meta {
             font-size: 0.8rem;
             color: #666;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
         }
-        .stock-badge { color: var(--primary-color); }
+        .stock-badge { color: var(--primary-color); font-weight: 500;}
         .stock-badge.out { color: #dc3545; }
         
-        /* 4. 底部導覽列 (Sticky Bottom) */
+        /* 4. 底部 Sticky Tab */
         .bottom-nav {
             position: fixed;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             width: 90%;
+            max-width: 400px;
             background: white;
             border-radius: 50px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             display: flex;
             padding: 5px;
             z-index: 999;
@@ -130,52 +139,53 @@
             text-align: center;
             padding: 12px 0;
             border-radius: 40px;
-            color: #999;
+            color: #aaa;
             font-weight: bold;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         .nav-btn.active {
             background-color: var(--primary-color);
             color: white;
-            box-shadow: 0 2px 10px rgba(0,102,51,0.3);
+            box-shadow: 0 4px 12px rgba(0,102,51,0.3);
         }
-        .nav-btn i { margin-right: 5px; }
 
         /* 輸入框美化 */
         .form-control-custom {
             border: 2px solid #eee;
-            border-radius: 10px;
-            padding: 12px;
+            border-radius: 12px;
+            padding: 14px;
             font-size: 1.1rem;
             text-align: center;
+            background-color: #fafafa;
         }
         .form-control-custom:focus {
             border-color: var(--primary-color);
-            box-shadow: none;
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(0,102,51,0.1);
         }
         .btn-action {
             width: 100%;
             background: var(--primary-color);
             color: white;
             border: none;
-            padding: 12px;
-            border-radius: 10px;
+            padding: 14px;
+            border-radius: 12px;
             font-weight: bold;
             font-size: 1.1rem;
             margin-top: 15px;
+            box-shadow: 0 4px 10px rgba(0,102,51,0.3);
         }
-        .btn-action:active { transform: scale(0.98); }
-        .btn-redeem {
-            width: 100%;
-            padding: 6px;
-            font-size: 0.9rem;
-            border-radius: 6px;
-        }
+        .btn-action:active { transform: scale(0.98); box-shadow: none;}
+        
+        .btn-redeem { width: 100%; padding: 6px; font-size: 0.9rem; border-radius: 8px; }
 
-        /* 隱藏區塊 */
         .d-none { display: none; }
-        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -183,18 +193,22 @@
 
     <div class="header-section">
         <div class="header-bg-circle"></div>
-        <div class="d-flex justify-content-between align-items-center">
-            <div style="font-weight:bold; font-size:1.1rem;">
-                <i class="fas fa-beer"></i> 台灣啤酒
+        
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <div class="user-greeting" id="userGreeting">Hi, 會員</div>
+                <div style="font-weight:bold; font-size:1.2rem;">
+                    <i class="fas fa-beer"></i> 台灣啤酒
+                </div>
             </div>
             <div class="store-badge" id="storeDisplay">
-                <i class="fas fa-map-marker-alt me-1"></i> 載入中...
+                <i class="fas fa-spinner fa-spin"></i>
             </div>
         </div>
 
         <div class="balance-card">
             <div class="balance-number" id="headerPoints">---</div>
-            <div class="balance-label">目前持有點數 (Points)</div>
+            <div class="balance-label">目前持有點數</div>
         </div>
     </div>
 
@@ -202,23 +216,23 @@
         
         <div id="page-earn" class="fade-in">
             <div class="custom-card">
-                <h5 class="fw-bold mb-4" style="color:#333;"><i class="fas fa-plus-circle me-2 text-success"></i>掃碼集點</h5>
+                <h5 class="fw-bold mb-4" style="color:#333;"><i class="fas fa-qrcode me-2 text-success"></i>掃碼集點</h5>
                 
                 <div class="mb-3">
-                    <label class="text-muted small mb-1">消費瓶數 / 金額</label>
+                    <label class="text-muted small mb-2 fw-bold">消費瓶數 / 金額</label>
                     <input type="number" id="inputPoints" class="form-control form-control-custom" value="1" min="1">
                 </div>
 
                 <div class="mb-3">
-                    <label class="text-muted small mb-1">請店員輸入核銷碼</label>
+                    <label class="text-muted small mb-2 fw-bold">請店員輸入核銷碼</label>
                     <input type="password" id="inputPinEarn" class="form-control form-control-custom" placeholder="PIN Code" maxlength="4">
                 </div>
 
                 <button id="btnEarn" class="btn-action" onclick="doEarn()">確認集點</button>
             </div>
             
-            <div class="custom-card py-3 text-center" style="background:#e8f5e9; color:#2e7d32;">
-                <small><i class="fas fa-bullhorn me-1"></i> 週末限定：購買18天生啤點數加倍！</small>
+            <div class="custom-card py-3 text-center" style="background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9;">
+                <small><i class="fas fa-info-circle me-1"></i> 請向店員出示本畫面進行集點</small>
             </div>
         </div>
 
@@ -228,17 +242,17 @@
             <div id="rewardList" class="reward-grid">
                 <div class="text-center w-100 py-4" style="grid-column: span 2;">
                     <div class="spinner-border text-success" role="status"></div>
-                    <div class="mt-2 text-muted small">檢查庫存中...</div>
+                    <div class="mt-2 text-muted small">Loading...</div>
                 </div>
             </div>
-            
-            <div style="height: 100px;"></div> </div>
+            <div style="height: 100px;"></div> 
+        </div>
 
     </div>
 
     <div class="bottom-nav">
         <div class="nav-btn active" id="tab-earn" onclick="switchTab('earn')">
-            <i class="fas fa-qrcode"></i> 集點
+            <i class="fas fa-camera"></i> 集點
         </div>
         <div class="nav-btn" id="tab-redeem" onclick="switchTab('redeem')">
             <i class="fas fa-gift"></i> 兌換
@@ -255,19 +269,19 @@
         const currentStoreId = urlParams.get('store') || 'store01'; 
         let currentUserProfile = null;
 
-        // 初始化
         window.onload = function() {
             liff.init({ liffId: MY_LIFF_ID }).then(() => {
-                document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-store me-1"></i> ${currentStoreId}`;
+                document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-map-marker-alt me-1"></i> ${currentStoreId}`;
                 
                 if (!liff.isLoggedIn()) {
                     liff.login();
                 } else {
                     liff.getProfile().then(profile => { 
                         currentUserProfile = profile;
-                        // 初始先讀取一次點數 (偷偷呼叫 getRewards 雖然有點浪費但最簡單能拿到餘額)
-                        // 或我們等到使用者切換頁面時再更新也可。
-                        // 這裡為了體驗好，先顯示 --- 等使用者互動。
+                        // 更新 UI 上的暱稱
+                        if(profile.displayName) {
+                            document.getElementById('userGreeting').innerText = `Hi, ${profile.displayName}`;
+                        }
                     });
                 }
             }).catch(err => {
@@ -275,19 +289,15 @@
             });
         };
 
-        // 頁面切換邏輯
         function switchTab(tabName) {
-            // 切換按鈕樣式
             document.getElementById('tab-earn').classList.remove('active');
             document.getElementById('tab-redeem').classList.remove('active');
             document.getElementById('tab-' + tabName).classList.add('active');
 
-            // 切換頁面顯示
             document.getElementById('page-earn').classList.add('d-none');
             document.getElementById('page-redeem').classList.add('d-none');
             document.getElementById('page-' + tabName).classList.remove('d-none');
 
-            // 如果切到兌換頁，觸發載入
             if (tabName === 'redeem') {
                 loadRewards();
             }
@@ -299,7 +309,7 @@
             const btn = document.getElementById('btnEarn');
             
             if (!pointsInput.value || pointsInput.value <= 0 || !pinInput.value) {
-                Swal.fire({ icon:'warning', title:'資料不完整', text:'請輸入點數與核銷碼' });
+                Swal.fire({ icon:'warning', title:'資料不完整', text:'請輸入消費數量與核銷碼' });
                 return;
             }
             if (!currentUserProfile) return;
@@ -307,12 +317,13 @@
             callApi(btn, {
                 action: 'add',
                 userId: currentUserProfile.userId,
+                displayName: currentUserProfile.displayName, // 傳送暱稱
                 points: pointsInput.value,
                 storeId: currentStoreId,
                 pin: pinInput.value
             }, (data) => {
                 pinInput.value = ""; 
-                updateBalanceUI(data.totalPoints); // 更新上方點數卡
+                updateBalanceUI(data.totalPoints); 
                 Swal.fire({
                     icon: 'success',
                     title: '集點成功',
@@ -327,9 +338,6 @@
             if (!currentUserProfile) return;
             const listDiv = document.getElementById('rewardList');
             
-            // 保持 Loading 狀態
-            // listDiv.innerHTML = '...'; 
-
             fetch(GAS_API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "text/plain" },
@@ -342,8 +350,6 @@
             .then(res => res.json())
             .then(data => {
                 listDiv.innerHTML = ""; 
-                
-                // 順便更新餘額
                 if(data.userBalance !== undefined) updateBalanceUI(data.userBalance);
 
                 if (!data.rewards || data.rewards.length === 0) {
@@ -353,7 +359,6 @@
 
                 data.rewards.forEach(item => {
                     const isOutOfStock = item.stock <= 0;
-                    // 使用預設圖
                     const imgUrl = item.image && item.image.startsWith('http') ? item.image : "https://via.placeholder.com/300x200?text=Taiwan+Beer";
                     
                     const btnHtml = isOutOfStock 
@@ -383,7 +388,7 @@
                 });
             })
             .catch(err => {
-                listDiv.innerHTML = "<p class='text-danger text-center w-100'>載入失敗，請重試</p>";
+                listDiv.innerHTML = "<p class='text-danger text-center w-100'>載入失敗</p>";
             });
         }
 
@@ -405,13 +410,14 @@
                     callApi(null, {
                         action: 'redeem',
                         userId: currentUserProfile.userId,
+                        displayName: currentUserProfile.displayName, // 兌換也記錄暱稱
                         storeId: currentStoreId,
                         pin: result.value,
                         rewardName: rewardName,
                         cost: cost
                     }, (data) => {
                         updateBalanceUI(data.totalPoints);
-                        loadRewards(); // 重整列表
+                        loadRewards(); 
                         Swal.fire({
                             icon: 'success',
                             title: '兌換成功',
@@ -445,10 +451,10 @@
         }
 
         function updateBalanceUI(points) {
-            // 加入數字跳動動畫效果
             const el = document.getElementById('headerPoints');
             el.innerText = points;
-            el.classList.add('fade-in'); // 簡單的動畫重置邏輯可以更複雜，這裡從簡
+            el.classList.add('fade-in');
+            setTimeout(() => el.classList.remove('fade-in'), 500);
         }
     </script>
 </body>
