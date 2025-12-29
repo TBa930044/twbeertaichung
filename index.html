@@ -54,6 +54,13 @@
 
         .form-control-custom { border: 2px solid #eee; border-radius: 12px; padding: 14px; font-size: 1.1rem; text-align: center; background-color: #fafafa; }
         .form-control-custom:focus { border-color: var(--primary-color); background-color: #fff; box-shadow: 0 0 0 3px rgba(0,102,51,0.1); }
+        
+        /* 調整 Placeholder 的字體大小，避免太長被切掉 */
+        .form-control-custom::placeholder {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
         .btn-action { width: 100%; background: var(--primary-color); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; font-size: 1.1rem; margin-top: 15px; box-shadow: 0 4px 10px rgba(0,102,51,0.3); transition: background-color 0.3s; }
         .btn-action:active { transform: scale(0.98); box-shadow: none;}
         .btn-action:disabled { background-color: #ccc; box-shadow: none; cursor: not-allowed; }
@@ -91,7 +98,7 @@
                 <h5 class="fw-bold mb-4" style="color:#333;"><i class="fas fa-qrcode me-2 text-success"></i>掃碼集點</h5>
                 <div class="mb-3">
                     <label class="text-muted small mb-2 fw-bold">消費瓶數 / 金額</label>
-                    <input type="number" id="inputPoints" class="form-control form-control-custom" value="1" min="1">
+                    <input type="number" id="inputPoints" class="form-control form-control-custom" placeholder="請輸入本次消費台啤瓶數" min="1">
                 </div>
                 <div class="mb-3">
                     <label class="text-muted small mb-2 fw-bold">請店員輸入核銷碼</label>
@@ -163,6 +170,7 @@
             if (isViewOnly) {
                 document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-search me-1"></i> 集點查詢`;
                 document.getElementById('inputPoints').disabled = true;
+                // 查詢模式下也改為提示文字
                 document.getElementById('inputPoints').placeholder = "僅供查詢";
                 document.getElementById('inputPinEarn').disabled = true;
                 document.getElementById('inputPinEarn').placeholder = "請至門市集點";
@@ -241,6 +249,7 @@
                 pin: pinInput.value
             }, (data) => {
                 pinInput.value = ""; 
+                // 清空輸入框後，placeholder 會自動再次出現
                 updateBalanceUI(data.totalPoints); 
                 Swal.fire({
                     icon: 'success',
