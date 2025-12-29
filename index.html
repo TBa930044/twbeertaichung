@@ -61,6 +61,29 @@
             padding: 25px 20px;
         }
         
+        /* 歷史紀錄列表樣式 */
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .history-item {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .history-info { flex: 1; }
+        .history-action { font-weight: bold; color: #333; margin-bottom: 2px; }
+        .history-meta { font-size: 0.8rem; color: #888; }
+        .history-points { font-size: 1.2rem; font-weight: bold; }
+        .points-add { color: var(--primary-color); }
+        .points-minus { color: #dc3545; }
+
+        /* 贈品網格排版 */
         .reward-grid {
             display: grid;
             grid-template-columns: 1fr 1fr; 
@@ -109,6 +132,7 @@
         .stock-badge { color: var(--primary-color); font-weight: 500;}
         .stock-badge.out { color: #dc3545; }
         
+        /* 底部 Sticky Tab */
         .bottom-nav {
             position: fixed;
             bottom: 20px;
@@ -135,7 +159,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 5px;
+            font-size: 0.9rem;
         }
         .nav-btn.active {
             background-color: var(--primary-color);
@@ -170,7 +195,6 @@
         }
         .btn-action:active { transform: scale(0.98); box-shadow: none;}
         
-        /* 查詢模式的禁用樣式 */
         .btn-action:disabled {
             background-color: #ccc;
             box-shadow: none;
@@ -234,6 +258,16 @@
             </div>
             <div style="height: 100px;"></div> 
         </div>
+
+        <div id="page-history" class="d-none fade-in">
+            <h5 class="fw-bold ps-2 mb-3 border-start border-4 border-success"> &nbsp;近期交易紀錄</h5>
+            <div id="historyList" class="history-list">
+                <div class="text-center w-100 py-4">
+                    <div class="spinner-border text-success" role="status"></div>
+                </div>
+            </div>
+            <div style="height: 100px;"></div> 
+        </div>
     </div>
 
     <div class="bottom-nav">
@@ -242,6 +276,9 @@
         </div>
         <div class="nav-btn" id="tab-redeem" onclick="switchTab('redeem')">
             <i class="fas fa-gift"></i> 兌換
+        </div>
+        <div class="nav-btn" id="tab-history" onclick="switchTab('history')">
+            <i class="fas fa-history"></i> 紀錄
         </div>
     </div>
 
@@ -252,27 +289,20 @@
         // ==========================================
 
         const urlParams = new URLSearchParams(window.location.search);
-        // 如果網址沒有參數，預設為 store01 (店員模式)；若想預設為查詢模式，可改成 store00
         const currentStoreId = urlParams.get('store') || 'store01'; 
         let currentUserProfile = null;
-        // 判斷是否為查詢模式
         const isViewOnly = (currentStoreId === 'store00');
 
         window.onload = function() {
-            // UI 初始設定
             document.getElementById('headerPoints').innerText = "載入中..."; 
             document.getElementById('headerPoints').style.fontSize = "1.5rem";
 
-            // 如果是查詢模式，鎖定集點介面
             if (isViewOnly) {
-                document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-eye me-1"></i> 查詢模式`;
-                
+                document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-search me-1"></i> 集點查詢`;
                 document.getElementById('inputPoints').disabled = true;
                 document.getElementById('inputPoints').placeholder = "僅供查詢";
-                
                 document.getElementById('inputPinEarn').disabled = true;
                 document.getElementById('inputPinEarn').placeholder = "請至門市集點";
-                
                 const btn = document.getElementById('btnEarn');
                 btn.disabled = true;
                 btn.innerText = "此模式僅供查詢餘額";
@@ -301,44 +331,35 @@
             fetch(GAS_API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "text/plain" },
-                body: JSON.stringify({ 
-                    action: 'checkBalance', 
-                    userId: userId 
-                })
+                body: JSON.stringify({ action: 'checkBalance', userId: userId })
             })
             .then(res => res.json())
             .then(data => {
                 document.getElementById('headerPoints').style.fontSize = "3.8rem";
-                if(data.userBalance !== undefined) {
-                    updateBalanceUI(data.userBalance);
-                }
+                if(data.userBalance !== undefined) updateBalanceUI(data.userBalance);
             })
-            .catch(err => {
-                document.getElementById('headerPoints').innerText = "---";
-            });
+            .catch(err => { document.getElementById('headerPoints').innerText = "---"; });
         }
 
         function switchTab(tabName) {
-            document.getElementById('tab-earn').classList.remove('active');
-            document.getElementById('tab-redeem').classList.remove('active');
+            // 切換按鈕
+            ['earn', 'redeem', 'history'].forEach(t => {
+                document.getElementById('tab-' + t).classList.remove('active');
+                document.getElementById('page-' + t).classList.add('d-none');
+            });
+            
             document.getElementById('tab-' + tabName).classList.add('active');
-
-            document.getElementById('page-earn').classList.add('d-none');
-            document.getElementById('page-redeem').classList.add('d-none');
             document.getElementById('page-' + tabName).classList.remove('d-none');
 
-            if (tabName === 'redeem') {
-                loadRewards();
-            }
+            if (tabName === 'redeem') loadRewards();
+            if (tabName === 'history') loadHistory();
         }
 
         function doEarn() {
-            // 前端再次阻擋
             if (isViewOnly) {
-                Swal.fire({ icon:'info', title:'無法集點', text:'此為查詢專用模式，請至實體店面掃描店員提供的 QR Code。' });
+                Swal.fire({ icon:'info', title:'無法集點', text:'此為查詢專用模式' });
                 return;
             }
-
             const pointsInput = document.getElementById('inputPoints');
             const pinInput = document.getElementById('inputPinEarn');
             const btn = document.getElementById('btnEarn');
@@ -396,7 +417,6 @@
                     const isOutOfStock = item.stock <= 0;
                     const imgUrl = item.image && item.image.startsWith('http') ? item.image : "https://via.placeholder.com/300x200?text=Taiwan+Beer";
                     
-                    // 如果是 store00 (查詢模式)，按鈕也該鎖住或顯示 "請至門市兌換"
                     let btnHtml = "";
                     if (isViewOnly) {
                          btnHtml = `<button class="btn btn-secondary btn-redeem" disabled>請至門市兌換</button>`;
@@ -428,9 +448,55 @@
                     listDiv.insertAdjacentHTML('beforeend', html);
                 });
             })
-            .catch(err => {
-                listDiv.innerHTML = "<p class='text-danger text-center w-100'>載入失敗</p>";
-            });
+            .catch(err => { listDiv.innerHTML = "<p class='text-danger text-center w-100'>載入失敗</p>"; });
+        }
+
+        // 新增：載入歷史紀錄
+        function loadHistory() {
+            if (!currentUserProfile) return;
+            const listDiv = document.getElementById('historyList');
+            listDiv.innerHTML = `<div class="text-center w-100 py-4"><div class="spinner-border text-success" role="status"></div></div>`;
+            
+            fetch(GAS_API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({ 
+                    action: 'getHistory',
+                    userId: currentUserProfile.userId
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                listDiv.innerHTML = ""; 
+                if (!data.history || data.history.length === 0) {
+                    listDiv.innerHTML = "<p class='text-center w-100 mt-5 text-muted'>尚無交易紀錄</p>";
+                    return;
+                }
+                
+                data.history.forEach(item => {
+                    // 根據正負數給顏色
+                    const isPositive = item.points > 0;
+                    const pointClass = isPositive ? 'points-add' : 'points-minus';
+                    const pointSign = isPositive ? '+' : '';
+                    
+                    const html = `
+                        <div class="history-item">
+                            <div class="history-info">
+                                <div class="history-action">${item.action}</div>
+                                <div class="history-meta">
+                                    <span class="me-2"><i class="far fa-clock"></i> ${item.date}</span>
+                                    <span><i class="fas fa-store"></i> ${item.store}</span>
+                                </div>
+                            </div>
+                            <div class="history-points ${pointClass}">
+                                ${pointSign}${item.points}
+                            </div>
+                        </div>
+                    `;
+                    listDiv.insertAdjacentHTML('beforeend', html);
+                });
+            })
+            .catch(err => { listDiv.innerHTML = "<p class='text-danger text-center w-100'>載入失敗</p>"; });
         }
 
         function askRedeem(rewardName, cost) {
