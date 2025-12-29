@@ -17,7 +17,6 @@
         }
         body { background-color: var(--bg-color); font-family: "Microsoft JhengHei", sans-serif; padding-bottom: 80px; }
         
-        /* 1. 頂部會員卡區塊 */
         .header-section {
             background: linear-gradient(135deg, #004d26 0%, #008040 100%);
             color: white;
@@ -53,7 +52,6 @@
         }
         .balance-label { font-size: 0.9rem; opacity: 0.8; letter-spacing: 1px; }
 
-        /* 2. 卡片與按鈕 */
         .custom-card {
             background: white;
             border: none;
@@ -63,7 +61,6 @@
             padding: 25px 20px;
         }
         
-        /* 3. 贈品網格排版 */
         .reward-grid {
             display: grid;
             grid-template-columns: 1fr 1fr; 
@@ -112,7 +109,6 @@
         .stock-badge { color: var(--primary-color); font-weight: 500;}
         .stock-badge.out { color: #dc3545; }
         
-        /* 4. 底部 Sticky Tab */
         .bottom-nav {
             position: fixed;
             bottom: 20px;
@@ -147,7 +143,6 @@
             box-shadow: 0 4px 12px rgba(0,102,51,0.3);
         }
 
-        /* 輸入框美化 */
         .form-control-custom {
             border: 2px solid #eee;
             border-radius: 12px;
@@ -174,6 +169,14 @@
             box-shadow: 0 4px 10px rgba(0,102,51,0.3);
         }
         .btn-action:active { transform: scale(0.98); box-shadow: none;}
+        
+        /* 查詢模式的禁用樣式 */
+        .btn-action:disabled {
+            background-color: #ccc;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
         .btn-redeem { width: 100%; padding: 6px; font-size: 0.9rem; border-radius: 8px; }
 
         .d-none { display: none; }
@@ -197,7 +200,7 @@
             </div>
         </div>
         <div class="balance-card">
-            <div class="balance-number" id="headerPoints">---</div>
+            <div class="balance-number" id="headerPoints">...</div>
             <div class="balance-label">目前持有點數</div>
         </div>
     </div>
@@ -215,6 +218,9 @@
                     <input type="password" id="inputPinEarn" class="form-control form-control-custom" placeholder="PIN Code" maxlength="4">
                 </div>
                 <button id="btnEarn" class="btn-action" onclick="doEarn()">確認集點</button>
+            </div>
+            <div class="custom-card py-3 text-center" style="background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9;">
+                <small><i class="fas fa-info-circle me-1"></i> 請向店員出示本畫面進行集點</small>
             </div>
         </div>
 
@@ -246,51 +252,70 @@
         // ==========================================
 
         const urlParams = new URLSearchParams(window.location.search);
+        // 如果網址沒有參數，預設為 store01 (店員模式)；若想預設為查詢模式，可改成 store00
         const currentStoreId = urlParams.get('store') || 'store01'; 
         let currentUserProfile = null;
+        // 判斷是否為查詢模式
+        const isViewOnly = (currentStoreId === 'store00');
 
-        // 初始化
         window.onload = function() {
-            liff.init({ liffId: MY_LIFF_ID }).then(() => {
-                document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-map-marker-alt me-1"></i> ${currentStoreId}`;
+            // UI 初始設定
+            document.getElementById('headerPoints').innerText = "載入中..."; 
+            document.getElementById('headerPoints').style.fontSize = "1.5rem";
+
+            // 如果是查詢模式，鎖定集點介面
+            if (isViewOnly) {
+                document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-eye me-1"></i> 查詢模式`;
                 
+                document.getElementById('inputPoints').disabled = true;
+                document.getElementById('inputPoints').placeholder = "僅供查詢";
+                
+                document.getElementById('inputPinEarn').disabled = true;
+                document.getElementById('inputPinEarn').placeholder = "請至門市集點";
+                
+                const btn = document.getElementById('btnEarn');
+                btn.disabled = true;
+                btn.innerText = "此模式僅供查詢餘額";
+            } else {
+                document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-map-marker-alt me-1"></i> ${currentStoreId}`;
+            }
+
+            liff.init({ liffId: MY_LIFF_ID }).then(() => {
                 if (!liff.isLoggedIn()) {
                     liff.login();
                 } else {
                     liff.getProfile().then(profile => { 
                         currentUserProfile = profile;
-                        // 1. 更新 UI 暱稱
                         if(profile.displayName) {
                             document.getElementById('userGreeting').innerText = `Hi, ${profile.displayName}`;
                         }
-                        // 2. 【關鍵】一進來就默默更新點數，不用等使用者操作
-                        refreshPointsOnly();
+                        checkBalanceImmediately(profile.userId);
                     });
                 }
             }).catch(err => {
-                document.getElementById('storeDisplay').innerText = "系統異常";
+                document.getElementById('headerPoints').innerText = "Err";
             });
         };
 
-        // 新增：只更新點數的輕量函式
-        function refreshPointsOnly() {
-            if(!currentUserProfile) return;
-            // 這裡不顯示 loading，體驗較好 (背景執行)
+        function checkBalanceImmediately(userId) {
             fetch(GAS_API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "text/plain" },
                 body: JSON.stringify({ 
-                    action: 'checkBalance', // 呼叫後端新功能
-                    userId: currentUserProfile.userId 
+                    action: 'checkBalance', 
+                    userId: userId 
                 })
             })
             .then(res => res.json())
             .then(data => {
+                document.getElementById('headerPoints').style.fontSize = "3.8rem";
                 if(data.userBalance !== undefined) {
                     updateBalanceUI(data.userBalance);
                 }
             })
-            .catch(console.error);
+            .catch(err => {
+                document.getElementById('headerPoints').innerText = "---";
+            });
         }
 
         function switchTab(tabName) {
@@ -308,6 +333,12 @@
         }
 
         function doEarn() {
+            // 前端再次阻擋
+            if (isViewOnly) {
+                Swal.fire({ icon:'info', title:'無法集點', text:'此為查詢專用模式，請至實體店面掃描店員提供的 QR Code。' });
+                return;
+            }
+
             const pointsInput = document.getElementById('inputPoints');
             const pinInput = document.getElementById('inputPinEarn');
             const btn = document.getElementById('btnEarn');
@@ -365,9 +396,15 @@
                     const isOutOfStock = item.stock <= 0;
                     const imgUrl = item.image && item.image.startsWith('http') ? item.image : "https://via.placeholder.com/300x200?text=Taiwan+Beer";
                     
-                    const btnHtml = isOutOfStock 
-                        ? `<button class="btn btn-secondary btn-redeem" disabled>已兌完</button>`
-                        : `<button class="btn btn-outline-success btn-redeem" onclick="askRedeem('${item.name}', ${item.cost})">兌換</button>`;
+                    // 如果是 store00 (查詢模式)，按鈕也該鎖住或顯示 "請至門市兌換"
+                    let btnHtml = "";
+                    if (isViewOnly) {
+                         btnHtml = `<button class="btn btn-secondary btn-redeem" disabled>請至門市兌換</button>`;
+                    } else if (isOutOfStock) {
+                         btnHtml = `<button class="btn btn-secondary btn-redeem" disabled>已兌完</button>`;
+                    } else {
+                         btnHtml = `<button class="btn btn-outline-success btn-redeem" onclick="askRedeem('${item.name}', ${item.cost})">兌換</button>`;
+                    }
                     
                     const stockHtml = isOutOfStock
                         ? `<span class="stock-badge out"><i class="fas fa-times-circle"></i> 缺貨</span>`
@@ -446,7 +483,7 @@
                 if (btnElement) { btnElement.disabled = false; btnElement.innerText = "確認集點"; }
                 Swal.close();
                 if (data.status === 'success') successCallback(data);
-                else Swal.fire({ icon:'error', title:'Oops...', text: data.message });
+                else Swal.fire({ icon:'error', title:'無法執行', text: data.message });
             })
             .catch(err => {
                 if (btnElement) btnElement.disabled = false;
