@@ -62,19 +62,9 @@
         .d-none { display: none; }
         .fade-in { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* 黃色除錯框 (Debug Box) - 顯示在最上層 */
-        #debugConsole {
-            position: fixed; top: 0; left: 0; width: 100%; background: rgba(255, 235, 59, 0.95);
-            color: #000; font-size: 10px; padding: 5px; z-index: 9999;
-            max-height: 100px; overflow-y: auto; border-bottom: 2px solid #fbc02d;
-            font-family: monospace;
-        }
     </style>
 </head>
 <body>
-
-    <div id="debugConsole">系統初始化中...</div>
 
     <div class="header-section">
         <div class="header-bg-circle"></div>
@@ -141,34 +131,23 @@
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwYI4M2RuswYcxoMy98Gr8WLinypnvZwrYAwtHsD84rX0unB26FKKx4u0dcuB9Ojo62/exec"; 
         const MY_LIFF_ID = "2008765350-4KBTGWMz"; 
         
-        // --- 1. 超級參數抓取邏輯 (Local Storage 救援) ---
-        function log(msg) {
-            console.log(msg);
-            document.getElementById('debugConsole').innerHTML = msg + "<br>" + document.getElementById('debugConsole').innerHTML;
-        }
-
+        // --- 1. 參數救援邏輯 (Local Storage) ---
         const urlParams = new URLSearchParams(window.location.search);
         let storeParam = urlParams.get('store');
         
-        // 如果 URL 沒參數，嘗試從 hash 抓
+        // 嘗試從 hash 抓
         if (!storeParam && window.location.hash) {
             const hashParams = new URLSearchParams(window.location.hash.substring(1));
             storeParam = hashParams.get('store');
         }
 
-        // **關鍵修正**: 
-        // 1. 如果 URL 有參數，趕快存到 LocalStorage (手機記憶體)
-        // 2. 如果 URL 沒參數 (被 LINE 吃掉了)，趕快去 LocalStorage 找回來
+        // 參數儲存與救援
         if (storeParam) {
             localStorage.setItem('savedStoreId', storeParam);
-            log("參數已儲存: " + storeParam);
         } else {
             const saved = localStorage.getItem('savedStoreId');
             if (saved) {
                 storeParam = saved;
-                log("參數遺失，從記憶體救援成功: " + saved);
-            } else {
-                log("無參數且無記憶，使用預設值");
             }
         }
 
@@ -177,7 +156,6 @@
         const isViewOnly = (currentStoreId === 'store00');
 
         window.onload = function() {
-            log("頁面載入... 店家: " + currentStoreId);
             document.getElementById('headerPoints').innerText = "載入中..."; 
             document.getElementById('headerPoints').style.fontSize = "1.5rem";
 
@@ -196,25 +174,17 @@
             }
 
             // 初始化 LIFF
-            log("開始 LIFF Init...");
             liff.init({ liffId: MY_LIFF_ID }).then(() => {
-                log("LIFF Init 完成");
-                
                 if (!liff.isLoggedIn()) {
-                    log("未登入，跳轉登入中...");
-                    // 登入前，確保目前的 URL 包含參數，這樣回來時才不會掉
-                    // 如果目前網址沒有參數，我們手動補上去再跳轉
+                    // 登入前，確保 redirectUri 包含參數
                     let loginRedirect = window.location.href;
                     if(currentStoreId && !window.location.search.includes('store')) {
-                         // 簡單判斷，如果原本沒參數就補 ?store=...
                          loginRedirect = loginRedirect.split('?')[0] + '?store=' + currentStoreId;
                     }
                     liff.login({ redirectUri: loginRedirect });
                 } else {
-                    log("已登入，取得資料中...");
                     liff.getProfile().then(profile => { 
                         currentUserProfile = profile;
-                        log("取得 User ID: " + profile.userId.substring(0, 5) + "...");
                         
                         if(profile.displayName) {
                             document.getElementById('userGreeting').innerText = `Hi, ${profile.displayName}`;
@@ -229,20 +199,18 @@
 
                         checkBalanceImmediately(profile.userId);
                     }).catch(err => {
-                        log("Profile 錯誤: " + err);
+                        console.error("Profile Error", err);
                         Swal.fire('錯誤', '無法取得使用者資料，請重新整理', 'error');
                     });
                 }
             }).catch(err => {
-                log("LIFF Init 失敗: " + err);
+                console.error("LIFF Init Error", err);
                 document.getElementById('headerPoints').innerText = "Err";
             });
         };
 
         function doEarn() {
-            // 防呆檢查
             if (!currentUserProfile || !currentUserProfile.userId) {
-                log("按鈕觸發但無 User 資料");
                 Swal.fire({
                     icon: 'warning',
                     title: '系統連線中',
@@ -264,16 +232,14 @@
                 return;
             }
 
-            log("送出集點請求...");
             callApi(btn, {
                 action: 'add',
                 userId: currentUserProfile.userId,
                 displayName: currentUserProfile.displayName, 
                 points: pointsInput.value,
-                storeId: currentStoreId, // 這裡會送出從 LocalStorage 救援回來的 ID
+                storeId: currentStoreId, 
                 pin: pinInput.value
             }, (data) => {
-                log("集點成功");
                 pinInput.value = ""; 
                 updateBalanceUI(data.totalPoints); 
                 Swal.fire({
@@ -286,15 +252,12 @@
             });
         }
 
-        // --- 其他函式不變 ---
         function checkBalanceImmediately(userId) {
-            log("查詢餘額...");
             fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: 'checkBalance', userId: userId }) })
             .then(res => res.json()).then(data => {
-                log("餘額: " + data.userBalance);
                 document.getElementById('headerPoints').style.fontSize = "3.8rem";
                 if(data.userBalance !== undefined) updateBalanceUI(data.userBalance);
-            }).catch(err => { log("查餘額失敗"); document.getElementById('headerPoints').innerText = "---"; });
+            }).catch(err => { document.getElementById('headerPoints').innerText = "---"; });
         }
 
         function switchTab(tabName) {
