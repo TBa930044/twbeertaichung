@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>台啤(中部)集點活動</title>
+    <title>(中部)台啤集點活動</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -135,7 +135,7 @@
             </div>
 
             <div id="rewardList" class="reward-grid">
-                <div class="text-center w-100 py-4"><div class="spinner-border text-success" role="status"></div></div>
+                <div class="text-center w-100 py-4" style="grid-column: span 2;"><div class="spinner-border text-success" role="status"></div></div>
             </div>
             <div style="height: 100px;"></div> 
         </div>
@@ -192,7 +192,7 @@
                 btn.disabled = true;
                 btn.innerText = "此模式僅供查詢餘額";
                 
-                // 【關鍵】如果是查詢模式，顯示下拉選單並載入清單
+                // 顯示下拉選單並載入清單
                 document.getElementById('storeSelectArea').classList.remove('d-none');
                 loadStoreList(); 
             } else {
@@ -229,7 +229,6 @@
             });
         };
 
-        // 新增功能：載入店家清單
         function loadStoreList() {
             const select = document.getElementById('storeSelect');
             fetch(GAS_API_URL, { 
@@ -297,22 +296,18 @@
             if (!currentUserProfile) return;
             const listDiv = document.getElementById('rewardList');
             
-            // 【關鍵修改】決定要查哪家店的庫存
             let targetStoreId = currentStoreId;
-            
-            // 如果是查詢模式(store00)，且下拉選單有選值，就用選單的值
             if (isViewOnly) {
                 const selectVal = document.getElementById('storeSelect').value;
                 if (selectVal) {
                     targetStoreId = selectVal;
                 } else {
-                    // 如果還沒選店，就不用查庫存(或顯示預設)，這裡我們讓它先顯示 "請選擇店家"
-                    // 為了不讓畫面空白，我們先維持 store00 (回傳庫存0)，等使用者選了才會變
                     targetStoreId = 'store00';
                 }
             }
 
-            listDiv.innerHTML = '<div class="text-center w-100 py-4"><div class="spinner-border text-success" role="status"></div><div class="small text-muted mt-2">更新庫存資訊...</div></div>';
+            // 【排版修正】Loading 佔滿兩欄
+            listDiv.innerHTML = '<div class="text-center w-100 py-4" style="grid-column: span 2;"><div class="spinner-border text-success" role="status"></div><div class="small text-muted mt-2">更新庫存資訊...</div></div>';
             
             fetch(GAS_API_URL, { 
                 method: "POST", headers: { "Content-Type": "text/plain" }, 
@@ -322,11 +317,14 @@
                 listDiv.innerHTML = ""; 
                 if(data.userBalance !== undefined) updateBalanceUI(data.userBalance);
                 
-                // 如果是查詢模式且沒選店，可以在這裡加提示
+                // 【排版修正】提示文字佔滿兩欄
                 if (isViewOnly && targetStoreId === 'store00') {
-                    listDiv.innerHTML = "<p class='text-center w-100 mt-2 text-muted'><i class='fas fa-arrow-up'></i> 請選擇上方店家以查看庫存</p>";
-                } else if (!data.rewards || data.rewards.length === 0) { 
-                    listDiv.innerHTML = "<p class='text-center w-100 mt-5 text-muted'>目前無可兌換商品</p>"; return; 
+                    listDiv.insertAdjacentHTML('beforeend', "<p class='text-center mt-2 text-muted' style='grid-column: span 2;'><i class='fas fa-arrow-up'></i> 請選擇上方店家以查看庫存</p>");
+                } 
+                
+                // 【排版修正】無資料佔滿兩欄
+                if (!data.rewards || data.rewards.length === 0) { 
+                    listDiv.innerHTML = "<p class='text-center w-100 mt-5 text-muted' style='grid-column: span 2;'>目前無可兌換商品</p>"; return; 
                 }
 
                 data.rewards.forEach(item => {
@@ -334,7 +332,6 @@
                     const imgUrl = item.image && item.image.startsWith('http') ? item.image : "https://via.placeholder.com/300x200?text=Taiwan+Beer";
                     let btnHtml = isViewOnly ? `<button class="btn btn-secondary btn-redeem" disabled>請至門市兌換</button>` : (isOutOfStock ? `<button class="btn btn-secondary btn-redeem" disabled>已兌完</button>` : `<button class="btn btn-outline-success btn-redeem" onclick="askRedeem('${item.name}', ${item.cost})">兌換</button>`);
                     
-                    // 如果是 store00 (沒選店)，庫存顯示 "-"
                     let stockText = (targetStoreId === 'store00') ? "請選店" : `剩 ${item.stock}`;
                     let stockClass = "";
                     if (targetStoreId !== 'store00') {
@@ -345,7 +342,9 @@
                     const html = `<div class="reward-card"><img src="${imgUrl}" class="reward-img" alt="${item.name}"><div class="reward-body"><div><div class="reward-title">${item.name}</div><div class="reward-meta"><span class="text-warning fw-bold"><i class="fas fa-gem"></i> ${item.cost}</span><span class="stock-badge ${stockClass}">${stockText}</span></div></div>${btnHtml}</div></div>`;
                     listDiv.insertAdjacentHTML('beforeend', html);
                 });
-            }).catch(err => { listDiv.innerHTML = "<p class='text-danger text-center w-100'>載入失敗</p>"; });
+            }).catch(err => { 
+                listDiv.innerHTML = "<p class='text-danger text-center w-100' style='grid-column: span 2;'>載入失敗</p>"; 
+            });
         }
 
         function loadHistory() {
