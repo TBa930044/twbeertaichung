@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TTL 會員專區</title>
+    <title>台啤(中部)集點活動</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -54,12 +54,7 @@
 
         .form-control-custom { border: 2px solid #eee; border-radius: 12px; padding: 14px; font-size: 1.1rem; text-align: center; background-color: #fafafa; }
         .form-control-custom:focus { border-color: var(--primary-color); background-color: #fff; box-shadow: 0 0 0 3px rgba(0,102,51,0.1); }
-        
-        /* 調整 Placeholder 的字體大小，避免太長被切掉 */
-        .form-control-custom::placeholder {
-            font-size: 0.9rem;
-            color: #aaa;
-        }
+        .form-control-custom::placeholder { font-size: 0.9rem; color: #aaa; }
 
         .btn-action { width: 100%; background: var(--primary-color); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; font-size: 1.1rem; margin-top: 15px; box-shadow: 0 4px 10px rgba(0,102,51,0.3); transition: background-color 0.3s; }
         .btn-action:active { transform: scale(0.98); box-shadow: none;}
@@ -69,6 +64,24 @@
         .d-none { display: none; }
         .fade-in { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 店家選擇選單樣式 */
+        .store-select-container {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--primary-color);
+        }
+        .form-select-custom {
+            border: 2px solid #eee;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 1rem;
+            width: 100%;
+            background-color: #fafafa;
+        }
     </style>
 </head>
 <body>
@@ -113,6 +126,14 @@
 
         <div id="page-redeem" class="d-none fade-in">
             <h5 class="fw-bold ps-2 mb-3 border-start border-4 border-success"> &nbsp;好禮兌換專區</h5>
+            
+            <div id="storeSelectArea" class="store-select-container d-none">
+                <label class="text-muted small mb-1 fw-bold"><i class="fas fa-store-alt me-1"></i> 查詢各店庫存</label>
+                <select id="storeSelect" class="form-select form-select-custom" onchange="loadRewards()">
+                    <option value="" disabled selected>載入店家清單中...</option>
+                </select>
+            </div>
+
             <div id="rewardList" class="reward-grid">
                 <div class="text-center w-100 py-4"><div class="spinner-border text-success" role="status"></div></div>
             </div>
@@ -138,24 +159,18 @@
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwYI4M2RuswYcxoMy98Gr8WLinypnvZwrYAwtHsD84rX0unB26FKKx4u0dcuB9Ojo62/exec"; 
         const MY_LIFF_ID = "2008765350-4KBTGWMz"; 
         
-        // --- 1. 參數救援邏輯 (Local Storage) ---
+        // 參數救援邏輯
         const urlParams = new URLSearchParams(window.location.search);
         let storeParam = urlParams.get('store');
-        
-        // 嘗試從 hash 抓
         if (!storeParam && window.location.hash) {
             const hashParams = new URLSearchParams(window.location.hash.substring(1));
             storeParam = hashParams.get('store');
         }
-
-        // 參數儲存與救援
         if (storeParam) {
             localStorage.setItem('savedStoreId', storeParam);
         } else {
             const saved = localStorage.getItem('savedStoreId');
-            if (saved) {
-                storeParam = saved;
-            }
+            if (saved) storeParam = saved;
         }
 
         const currentStoreId = storeParam || 'store01'; 
@@ -170,13 +185,16 @@
             if (isViewOnly) {
                 document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-search me-1"></i> 集點查詢`;
                 document.getElementById('inputPoints').disabled = true;
-                // 查詢模式下也改為提示文字
                 document.getElementById('inputPoints').placeholder = "僅供查詢";
                 document.getElementById('inputPinEarn').disabled = true;
                 document.getElementById('inputPinEarn').placeholder = "請至門市集點";
                 const btn = document.getElementById('btnEarn');
                 btn.disabled = true;
                 btn.innerText = "此模式僅供查詢餘額";
+                
+                // 【關鍵】如果是查詢模式，顯示下拉選單並載入清單
+                document.getElementById('storeSelectArea').classList.remove('d-none');
+                loadStoreList(); 
             } else {
                 document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-map-marker-alt me-1"></i> ${currentStoreId}`;
             }
@@ -184,7 +202,6 @@
             // 初始化 LIFF
             liff.init({ liffId: MY_LIFF_ID }).then(() => {
                 if (!liff.isLoggedIn()) {
-                    // 登入前，確保 redirectUri 包含參數
                     let loginRedirect = window.location.href;
                     if(currentStoreId && !window.location.search.includes('store')) {
                          loginRedirect = loginRedirect.split('?')[0] + '?store=' + currentStoreId;
@@ -193,18 +210,13 @@
                 } else {
                     liff.getProfile().then(profile => { 
                         currentUserProfile = profile;
+                        if(profile.displayName) document.getElementById('userGreeting').innerText = `Hi, ${profile.displayName}`;
                         
-                        if(profile.displayName) {
-                            document.getElementById('userGreeting').innerText = `Hi, ${profile.displayName}`;
-                        }
-                        
-                        // 解鎖按鈕
                         if(!isViewOnly) {
                             const btn = document.getElementById('btnEarn');
                             btn.disabled = false;
                             btn.innerText = "確認集點";
                         }
-
                         checkBalanceImmediately(profile.userId);
                     }).catch(err => {
                         console.error("Profile Error", err);
@@ -217,47 +229,48 @@
             });
         };
 
+        // 新增功能：載入店家清單
+        function loadStoreList() {
+            const select = document.getElementById('storeSelect');
+            fetch(GAS_API_URL, { 
+                method: "POST", headers: { "Content-Type": "text/plain" }, 
+                body: JSON.stringify({ action: 'getStoreList' }) 
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    select.innerHTML = '<option value="" disabled selected>請選擇欲查詢之店家...</option>';
+                    data.stores.forEach(store => {
+                        const option = document.createElement('option');
+                        option.value = store.id;
+                        option.text = store.name;
+                        select.appendChild(option);
+                    });
+                }
+            })
+            .catch(console.error);
+        }
+
         function doEarn() {
             if (!currentUserProfile || !currentUserProfile.userId) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: '系統連線中',
-                    text: '請稍等，正在讀取您的會員資料...',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
+                Swal.fire({ icon: 'warning', title: '系統連線中', text: '請稍等，正在讀取您的會員資料...', timer: 2000, showConfirmButton: false });
                 return;
             }
-
             if (isViewOnly) return;
-
             const pointsInput = document.getElementById('inputPoints');
             const pinInput = document.getElementById('inputPinEarn');
             const btn = document.getElementById('btnEarn');
-            
             if (!pointsInput.value || pointsInput.value <= 0 || !pinInput.value) {
                 Swal.fire({ icon:'warning', title:'資料不完整', text:'請輸入消費數量與核銷碼' });
                 return;
             }
-
             callApi(btn, {
-                action: 'add',
-                userId: currentUserProfile.userId,
-                displayName: currentUserProfile.displayName, 
-                points: pointsInput.value,
-                storeId: currentStoreId, 
-                pin: pinInput.value
+                action: 'add', userId: currentUserProfile.userId, displayName: currentUserProfile.displayName, 
+                points: pointsInput.value, storeId: currentStoreId, pin: pinInput.value
             }, (data) => {
                 pinInput.value = ""; 
-                // 清空輸入框後，placeholder 會自動再次出現
                 updateBalanceUI(data.totalPoints); 
-                Swal.fire({
-                    icon: 'success',
-                    title: '集點成功',
-                    html: `<div style="font-size:1.2rem">獲得 <b>${data.addedPoints}</b> 點</div>`,
-                    timer: 2000,
-                    showConfirmButton: false
-                });
+                Swal.fire({ icon: 'success', title: '集點成功', html: `<div style="font-size:1.2rem">獲得 <b>${data.addedPoints}</b> 點</div>`, timer: 2000, showConfirmButton: false });
             });
         }
 
@@ -283,17 +296,53 @@
         function loadRewards() {
             if (!currentUserProfile) return;
             const listDiv = document.getElementById('rewardList');
-            fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: 'getRewards', userId: currentUserProfile.userId, storeId: currentStoreId }) })
+            
+            // 【關鍵修改】決定要查哪家店的庫存
+            let targetStoreId = currentStoreId;
+            
+            // 如果是查詢模式(store00)，且下拉選單有選值，就用選單的值
+            if (isViewOnly) {
+                const selectVal = document.getElementById('storeSelect').value;
+                if (selectVal) {
+                    targetStoreId = selectVal;
+                } else {
+                    // 如果還沒選店，就不用查庫存(或顯示預設)，這裡我們讓它先顯示 "請選擇店家"
+                    // 為了不讓畫面空白，我們先維持 store00 (回傳庫存0)，等使用者選了才會變
+                    targetStoreId = 'store00';
+                }
+            }
+
+            listDiv.innerHTML = '<div class="text-center w-100 py-4"><div class="spinner-border text-success" role="status"></div><div class="small text-muted mt-2">更新庫存資訊...</div></div>';
+            
+            fetch(GAS_API_URL, { 
+                method: "POST", headers: { "Content-Type": "text/plain" }, 
+                body: JSON.stringify({ action: 'getRewards', userId: currentUserProfile.userId, storeId: targetStoreId }) 
+            })
             .then(res => res.json()).then(data => {
                 listDiv.innerHTML = ""; 
                 if(data.userBalance !== undefined) updateBalanceUI(data.userBalance);
-                if (!data.rewards || data.rewards.length === 0) { listDiv.innerHTML = "<p class='text-center w-100 mt-5 text-muted'>目前無可兌換商品</p>"; return; }
+                
+                // 如果是查詢模式且沒選店，可以在這裡加提示
+                if (isViewOnly && targetStoreId === 'store00') {
+                    listDiv.innerHTML = "<p class='text-center w-100 mt-2 text-muted'><i class='fas fa-arrow-up'></i> 請選擇上方店家以查看庫存</p>";
+                } else if (!data.rewards || data.rewards.length === 0) { 
+                    listDiv.innerHTML = "<p class='text-center w-100 mt-5 text-muted'>目前無可兌換商品</p>"; return; 
+                }
+
                 data.rewards.forEach(item => {
                     const isOutOfStock = item.stock <= 0;
                     const imgUrl = item.image && item.image.startsWith('http') ? item.image : "https://via.placeholder.com/300x200?text=Taiwan+Beer";
                     let btnHtml = isViewOnly ? `<button class="btn btn-secondary btn-redeem" disabled>請至門市兌換</button>` : (isOutOfStock ? `<button class="btn btn-secondary btn-redeem" disabled>已兌完</button>` : `<button class="btn btn-outline-success btn-redeem" onclick="askRedeem('${item.name}', ${item.cost})">兌換</button>`);
-                    const stockHtml = isOutOfStock ? `<span class="stock-badge out"><i class="fas fa-times-circle"></i> 缺貨</span>` : `<span class="stock-badge"><i class="fas fa-check-circle"></i> 剩 ${item.stock}</span>`;
-                    const html = `<div class="reward-card"><img src="${imgUrl}" class="reward-img" alt="${item.name}"><div class="reward-body"><div><div class="reward-title">${item.name}</div><div class="reward-meta"><span class="text-warning fw-bold"><i class="fas fa-gem"></i> ${item.cost}</span>${stockHtml}</div></div>${btnHtml}</div></div>`;
+                    
+                    // 如果是 store00 (沒選店)，庫存顯示 "-"
+                    let stockText = (targetStoreId === 'store00') ? "請選店" : `剩 ${item.stock}`;
+                    let stockClass = "";
+                    if (targetStoreId !== 'store00') {
+                         stockClass = isOutOfStock ? "out" : "";
+                         stockText = isOutOfStock ? `<i class="fas fa-times-circle"></i> 缺貨` : `<i class="fas fa-check-circle"></i> 剩 ${item.stock}`;
+                    }
+                    
+                    const html = `<div class="reward-card"><img src="${imgUrl}" class="reward-img" alt="${item.name}"><div class="reward-body"><div><div class="reward-title">${item.name}</div><div class="reward-meta"><span class="text-warning fw-bold"><i class="fas fa-gem"></i> ${item.cost}</span><span class="stock-badge ${stockClass}">${stockText}</span></div></div>${btnHtml}</div></div>`;
                     listDiv.insertAdjacentHTML('beforeend', html);
                 });
             }).catch(err => { listDiv.innerHTML = "<p class='text-danger text-center w-100'>載入失敗</p>"; });
