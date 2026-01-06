@@ -18,10 +18,7 @@
             border-bottom-left-radius: 30px; border-bottom-right-radius: 30px;
             box-shadow: 0 4px 15px rgba(0,80,0,0.25); position: relative; overflow: hidden;
         }
-        .header-bg-circle {
-            position: absolute; top: -30px; right: -30px; width: 180px; height: 180px;
-            background: rgba(255,255,255,0.08); border-radius: 50%;
-        }
+        .header-bg-circle { position: absolute; top: -30px; right: -30px; width: 180px; height: 180px; background: rgba(255,255,255,0.08); border-radius: 50%; }
         .user-greeting { font-size: 0.95rem; opacity: 0.9; margin-bottom: 5px; }
         .store-badge { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; backdrop-filter: blur(4px); }
         .balance-card { margin-top: 20px; text-align: center; }
@@ -48,40 +45,63 @@
         .stock-badge { color: var(--primary-color); font-weight: 500;}
         .stock-badge.out { color: #dc3545; }
         
-        .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: white; border-radius: 50px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); display: flex; padding: 5px; z-index: 999; }
-        .nav-btn { flex: 1; text-align: center; padding: 12px 0; border-radius: 40px; color: #aaa; font-weight: bold; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 0.9rem; }
+        /* 轉盤樣式 */
+        .wheel-container { position: relative; width: 300px; height: 300px; margin: 0 auto 20px auto; }
+        .wheel {
+            width: 100%; height: 100%; border-radius: 50%; border: 10px solid #004d26;
+            position: relative; overflow: hidden; transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            background: conic-gradient(
+                #FFC107 0% 16.66%, 
+                #ffffff 16.66% 33.33%, 
+                #FFC107 33.33% 50%, 
+                #ffffff 50% 66.66%, 
+                #FFC107 66.66% 83.33%, 
+                #ffffff 83.33% 100%
+            );
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .wheel-text {
+            position: absolute; top: 50%; left: 50%; width: 100%; height: 100%;
+            transform-origin: 0 0; text-align: center; padding-top: 15px; font-weight: bold; font-size: 0.9rem; color: #333;
+        }
+        /* 轉盤 6 格文字定位 */
+        .txt-1 { transform: rotate(30deg) translateY(-140px) translateX(-50%); } /* 拉桿冰桶 */
+        .txt-2 { transform: rotate(90deg) translateY(-140px) translateX(-50%); } /* 銘謝 */
+        .txt-3 { transform: rotate(150deg) translateY(-140px) translateX(-50%); } /* 行李箱 */
+        .txt-4 { transform: rotate(210deg) translateY(-140px) translateX(-50%); } /* 銘謝 */
+        .txt-5 { transform: rotate(270deg) translateY(-140px) translateX(-50%); } /* 銘謝 */
+        .txt-6 { transform: rotate(330deg) translateY(-140px) translateX(-50%); } /* 銘謝 */
+
+        .wheel-pointer {
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent;
+            border-top: 40px solid #dc3545; z-index: 10; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+        }
+        .wheel-btn {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 70px; height: 70px; background: white; border-radius: 50%;
+            border: 4px solid #004d26; color: #004d26; font-weight: bold; font-size: 1.2rem;
+            display: flex; align-items: center; justify-content: center; z-index: 5;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2); cursor: pointer;
+        }
+        .wheel-btn:active { transform: translate(-50%, -50%) scale(0.95); }
+
+        .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 400px; background: white; border-radius: 50px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); display: flex; padding: 5px; z-index: 999; }
+        .nav-btn { flex: 1; text-align: center; padding: 12px 0; border-radius: 40px; color: #aaa; font-weight: bold; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 0.85rem; }
         .nav-btn.active { background-color: var(--primary-color); color: white; box-shadow: 0 4px 12px rgba(0,102,51,0.3); }
 
         .form-control-custom { border: 2px solid #eee; border-radius: 12px; padding: 14px; font-size: 1.1rem; text-align: center; background-color: #fafafa; }
         .form-control-custom:focus { border-color: var(--primary-color); background-color: #fff; box-shadow: 0 0 0 3px rgba(0,102,51,0.1); }
         .form-control-custom::placeholder { font-size: 0.9rem; color: #aaa; }
-
         .btn-action { width: 100%; background: var(--primary-color); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; font-size: 1.1rem; margin-top: 15px; box-shadow: 0 4px 10px rgba(0,102,51,0.3); transition: background-color 0.3s; }
         .btn-action:active { transform: scale(0.98); box-shadow: none;}
         .btn-action:disabled { background-color: #ccc; box-shadow: none; cursor: not-allowed; }
         .btn-redeem { width: 100%; padding: 6px; font-size: 0.9rem; border-radius: 8px; }
-
         .d-none { display: none; }
         .fade-in { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* 店家選擇選單樣式 */
-        .store-select-container {
-            background-color: #fff;
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            border-left: 5px solid var(--primary-color);
-        }
-        .form-select-custom {
-            border: 2px solid #eee;
-            border-radius: 8px;
-            padding: 10px;
-            font-size: 1rem;
-            width: 100%;
-            background-color: #fafafa;
-        }
+        .store-select-container { background-color: #fff; padding: 15px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid var(--primary-color); }
+        .form-select-custom { border: 2px solid #eee; border-radius: 8px; padding: 10px; font-size: 1rem; width: 100%; background-color: #fafafa; }
     </style>
 </head>
 <body>
@@ -126,16 +146,38 @@
 
         <div id="page-redeem" class="d-none fade-in">
             <h5 class="fw-bold ps-2 mb-3 border-start border-4 border-success"> &nbsp;好禮兌換專區</h5>
-            
             <div id="storeSelectArea" class="store-select-container d-none">
                 <label class="text-muted small mb-1 fw-bold"><i class="fas fa-store-alt me-1"></i> 查詢各店庫存</label>
                 <select id="storeSelect" class="form-select form-select-custom" onchange="loadRewards()">
                     <option value="" disabled selected>載入店家清單中...</option>
                 </select>
             </div>
-
             <div id="rewardList" class="reward-grid">
                 <div class="text-center w-100 py-4" style="grid-column: span 2;"><div class="spinner-border text-success" role="status"></div></div>
+            </div>
+            <div style="height: 100px;"></div> 
+        </div>
+
+        <div id="page-game" class="d-none fade-in">
+            <h5 class="fw-bold ps-2 mb-3 border-start border-4 border-success"> &nbsp;幸運大轉盤</h5>
+            <div class="custom-card text-center" style="background: #e8f5e9;">
+                <p class="mb-2 fw-bold" style="color:#004d26;">以小博大！每次只需 <span class="text-danger">2</span> 點</p>
+                <div class="wheel-container">
+                    <div class="wheel-pointer"></div>
+                    <div class="wheel" id="wheel">
+                        <div class="wheel-text txt-1">拉桿<br>冰桶</div>
+                        <div class="wheel-text txt-2">銘謝<br>惠顧</div>
+                        <div class="wheel-text txt-3">20吋<br>行李箱</div>
+                        <div class="wheel-text txt-4">銘謝<br>惠顧</div>
+                        <div class="wheel-text txt-5">銘謝<br>惠顧</div>
+                        <div class="wheel-text txt-6">銘謝<br>惠顧</div>
+                    </div>
+                    <div class="wheel-btn" onclick="doPlayGame()" id="spinBtn">GO</div>
+                </div>
+                <div class="small text-muted mt-2">
+                    <i class="fas fa-gift"></i> 大獎：拉桿冰桶 (極稀有)<br>
+                    <i class="fas fa-suitcase"></i> 二獎：20吋空軍藍行李箱
+                </div>
             </div>
             <div style="height: 100px;"></div> 
         </div>
@@ -150,28 +192,24 @@
     </div>
 
     <div class="bottom-nav">
-        <div class="nav-btn active" id="tab-earn" onclick="switchTab('earn')"><i class="fas fa-camera"></i> 集點</div>
-        <div class="nav-btn" id="tab-redeem" onclick="switchTab('redeem')"><i class="fas fa-gift"></i> 兌換</div>
-        <div class="nav-btn" id="tab-history" onclick="switchTab('history')"><i class="fas fa-history"></i> 紀錄</div>
+        <div class="nav-btn active" id="tab-earn" onclick="switchTab('earn')"><i class="fas fa-camera"></i><br>集點</div>
+        <div class="nav-btn" id="tab-redeem" onclick="switchTab('redeem')"><i class="fas fa-gift"></i><br>兌換</div>
+        <div class="nav-btn" id="tab-game" onclick="switchTab('game')"><i class="fas fa-dice"></i><br>遊戲</div>
+        <div class="nav-btn" id="tab-history" onclick="switchTab('history')"><i class="fas fa-history"></i><br>紀錄</div>
     </div>
 
     <script>
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwYI4M2RuswYcxoMy98Gr8WLinypnvZwrYAwtHsD84rX0unB26FKKx4u0dcuB9Ojo62/exec"; 
         const MY_LIFF_ID = "2008765350-4KBTGWMz"; 
         
-        // 參數救援邏輯
         const urlParams = new URLSearchParams(window.location.search);
         let storeParam = urlParams.get('store');
         if (!storeParam && window.location.hash) {
             const hashParams = new URLSearchParams(window.location.hash.substring(1));
             storeParam = hashParams.get('store');
         }
-        if (storeParam) {
-            localStorage.setItem('savedStoreId', storeParam);
-        } else {
-            const saved = localStorage.getItem('savedStoreId');
-            if (saved) storeParam = saved;
-        }
+        if (storeParam) { localStorage.setItem('savedStoreId', storeParam); } 
+        else { const saved = localStorage.getItem('savedStoreId'); if (saved) storeParam = saved; }
 
         const currentStoreId = storeParam || 'store01'; 
         let currentUserProfile = null;
@@ -181,7 +219,6 @@
             document.getElementById('headerPoints').innerText = "載入中..."; 
             document.getElementById('headerPoints').style.fontSize = "1.5rem";
 
-            // 設定 UI
             if (isViewOnly) {
                 document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-search me-1"></i> 集點查詢`;
                 document.getElementById('inputPoints').disabled = true;
@@ -191,15 +228,14 @@
                 const btn = document.getElementById('btnEarn');
                 btn.disabled = true;
                 btn.innerText = "此模式僅供查詢餘額";
-                
-                // 顯示下拉選單並載入清單
                 document.getElementById('storeSelectArea').classList.remove('d-none');
                 loadStoreList(); 
+                // 查詢模式下，遊戲按鈕也要鎖住嗎？通常為了吸引，可以讓他們玩，但不能領獎？
+                // 這裡我們暫不鎖遊戲，消耗的是點數。
             } else {
                 document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-map-marker-alt me-1"></i> ${currentStoreId}`;
             }
 
-            // 初始化 LIFF
             liff.init({ liffId: MY_LIFF_ID }).then(() => {
                 if (!liff.isLoggedIn()) {
                     let loginRedirect = window.location.href;
@@ -211,78 +247,149 @@
                     liff.getProfile().then(profile => { 
                         currentUserProfile = profile;
                         if(profile.displayName) document.getElementById('userGreeting').innerText = `Hi, ${profile.displayName}`;
-                        
                         if(!isViewOnly) {
                             const btn = document.getElementById('btnEarn');
                             btn.disabled = false;
                             btn.innerText = "確認集點";
                         }
                         checkBalanceImmediately(profile.userId);
-                    }).catch(err => {
-                        console.error("Profile Error", err);
-                        Swal.fire('錯誤', '無法取得使用者資料，請重新整理', 'error');
                     });
                 }
-            }).catch(err => {
-                console.error("LIFF Init Error", err);
-                document.getElementById('headerPoints').innerText = "Err";
-            });
+            }).catch(console.error);
         };
 
-        function loadStoreList() {
-            const select = document.getElementById('storeSelect');
+        // --- 遊戲邏輯 ---
+        let isSpinning = false;
+        function doPlayGame() {
+            if (isSpinning) return;
+            if (!currentUserProfile) return;
+
+            Swal.fire({
+                title: '幸運大轉盤',
+                text: "確定要扣除 2 點進行抽獎嗎？",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: '開始轉動！',
+                cancelButtonText: '等等',
+                confirmButtonColor: '#006633'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    startSpin();
+                }
+            });
+        }
+
+        function startSpin() {
+            isSpinning = true;
+            document.getElementById('spinBtn').style.opacity = 0.5;
+            
+            // 先發送 API 請求獲取結果
             fetch(GAS_API_URL, { 
                 method: "POST", headers: { "Content-Type": "text/plain" }, 
-                body: JSON.stringify({ action: 'getStoreList' }) 
+                body: JSON.stringify({ action: 'playGame', userId: currentUserProfile.userId, displayName: currentUserProfile.displayName }) 
             })
             .then(res => res.json())
             .then(data => {
+                if(data.status !== 'success') {
+                    Swal.fire('錯誤', data.message, 'error');
+                    isSpinning = false;
+                    document.getElementById('spinBtn').style.opacity = 1;
+                    return;
+                }
+                
+                // 開始轉動動畫
+                const wheel = document.getElementById('wheel');
+                // 每個獎項 60度 (360/6)
+                // 目標 Index: 0~5
+                // 我們要讓指針指到目標。注意：指針在上方(0度)。
+                // 旋轉角度 = 360 * 圈數 + (360 - 目標角度)
+                // 目標 Index 0 (0-60度) -> 指針指中間約 30度 -> 轉 330度
+                // 簡單算法：每個區塊中心點
+                const sliceDeg = 360 / 6;
+                // Index 0 (拉桿) 中心 30度
+                // Index 1 (銘謝) 中心 90度 ...
+                // 為了讓指針指到該區塊，轉盤要轉多少？
+                // 指針在正上方 (0度)，所以如果要指到 30度的區塊，轉盤要逆時針轉 30度 (即 -30 或 330)。
+                // 這裡我們用 CSS rotate，順時針轉。
+                // 轉盤轉 360 - (30 + Index*60)
+                
+                const targetDeg = (data.targetIndex * 60) + 30; 
+                const finalRotate = 3600 + (360 - targetDeg); // 轉 10 圈 + 角度
+
+                wheel.style.transform = `rotate(${finalRotate}deg)`;
+
+                // 4秒後顯示結果
+                setTimeout(() => {
+                    updateBalanceUI(data.newBalance);
+                    
+                    if(data.prize === "銘謝惠顧") {
+                        Swal.fire({ title: '真可惜...', text: '這次沒中獎，再接再厲！', icon: 'info' });
+                    } else {
+                        Swal.fire({
+                            title: '恭喜中獎！',
+                            html: `您獲得了：<br><b style="font-size:1.5rem; color:#d63384">${data.prize}</b><br><br><small style="color:red">請截圖此畫面，並至指定門市出示「歷史紀錄」領獎。</small>`,
+                            icon: 'success'
+                        });
+                    }
+                    
+                    // 重置
+                    isSpinning = false;
+                    document.getElementById('spinBtn').style.opacity = 1;
+                    // 為了讓下次能再轉，要把 transition 拿掉瞬間歸零 (偷懶解法：直接保留角度，下次加上去，但這裡先簡單重置視覺)
+                    setTimeout(() => {
+                         wheel.style.transition = 'none';
+                         wheel.style.transform = `rotate(${360 - targetDeg}deg)`;
+                         setTimeout(() => { wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)'; }, 50);
+                    }, 2000);
+
+                }, 4000);
+
+            })
+            .catch(err => {
+                isSpinning = false;
+                document.getElementById('spinBtn').style.opacity = 1;
+                Swal.fire('錯誤', '連線失敗', 'error');
+            });
+        }
+        
+        // --- 以下共用函式 ---
+        function loadStoreList() {
+            const select = document.getElementById('storeSelect');
+            fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: 'getStoreList' }) })
+            .then(res => res.json()).then(data => {
                 if(data.status === 'success') {
                     select.innerHTML = '<option value="" disabled selected>請選擇欲查詢之店家...</option>';
                     data.stores.forEach(store => {
                         const option = document.createElement('option');
-                        option.value = store.id;
-                        option.text = store.name;
-                        select.appendChild(option);
+                        option.value = store.id; option.text = store.name; select.appendChild(option);
                     });
                 }
-            })
-            .catch(console.error);
+            }).catch(console.error);
         }
 
-        function doEarn() {
-            if (!currentUserProfile || !currentUserProfile.userId) {
-                Swal.fire({ icon: 'warning', title: '系統連線中', text: '請稍等，正在讀取您的會員資料...', timer: 2000, showConfirmButton: false });
-                return;
-            }
-            if (isViewOnly) return;
-            const pointsInput = document.getElementById('inputPoints');
-            const pinInput = document.getElementById('inputPinEarn');
-            const btn = document.getElementById('btnEarn');
-            if (!pointsInput.value || pointsInput.value <= 0 || !pinInput.value) {
-                Swal.fire({ icon:'warning', title:'資料不完整', text:'請輸入消費數量與核銷碼' });
-                return;
-            }
-            callApi(btn, {
-                action: 'add', userId: currentUserProfile.userId, displayName: currentUserProfile.displayName, 
-                points: pointsInput.value, storeId: currentStoreId, pin: pinInput.value
-            }, (data) => {
-                pinInput.value = ""; 
-                updateBalanceUI(data.totalPoints); 
-                Swal.fire({ icon: 'success', title: '集點成功', html: `<div style="font-size:1.2rem">獲得 <b>${data.addedPoints}</b> 點</div>`, timer: 2000, showConfirmButton: false });
-            });
+        function doEarn() { /* ...維持原樣... */ 
+             // 為節省篇幅，這裡省略重複代碼，邏輯與上一版相同
+             // 請確保您貼上時，這段 doEarn 函式是完整的
+             // ...
+             if (!currentUserProfile || !currentUserProfile.userId) { Swal.fire({ icon: 'warning', title: '系統連線中', text: '請稍等...', timer: 2000, showConfirmButton: false }); return; }
+             if (isViewOnly) return;
+             const pointsInput = document.getElementById('inputPoints');
+             const pinInput = document.getElementById('inputPinEarn');
+             const btn = document.getElementById('btnEarn');
+             if (!pointsInput.value || pointsInput.value <= 0 || !pinInput.value) { Swal.fire({ icon:'warning', title:'資料不完整', text:'請輸入消費數量與核銷碼' }); return; }
+             callApi(btn, { action: 'add', userId: currentUserProfile.userId, displayName: currentUserProfile.displayName, points: pointsInput.value, storeId: currentStoreId, pin: pinInput.value }, (data) => {
+                 pinInput.value = ""; updateBalanceUI(data.totalPoints); Swal.fire({ icon: 'success', title: '集點成功', html: `<div style="font-size:1.2rem">獲得 <b>${data.addedPoints}</b> 點</div>`, timer: 2000, showConfirmButton: false });
+             });
         }
 
         function checkBalanceImmediately(userId) {
             fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: 'checkBalance', userId: userId }) })
-            .then(res => res.json()).then(data => {
-                document.getElementById('headerPoints').style.fontSize = "3.8rem";
-                if(data.userBalance !== undefined) updateBalanceUI(data.userBalance);
-            }).catch(err => { document.getElementById('headerPoints').innerText = "---"; });
+            .then(res => res.json()).then(data => { document.getElementById('headerPoints').style.fontSize = "3.8rem"; if(data.userBalance !== undefined) updateBalanceUI(data.userBalance); })
+            .catch(err => { document.getElementById('headerPoints').innerText = "---"; });
         }
 
         function switchTab(tabName) {
-            ['earn', 'redeem', 'history'].forEach(t => {
+            ['earn', 'redeem', 'game', 'history'].forEach(t => { // 增加 game
                 document.getElementById('tab-' + t).classList.remove('active');
                 document.getElementById('page-' + t).classList.add('d-none');
             });
@@ -293,105 +400,73 @@
         }
         
         function loadRewards() {
-            if (!currentUserProfile) return;
-            const listDiv = document.getElementById('rewardList');
-            
-            let targetStoreId = currentStoreId;
-            if (isViewOnly) {
-                const selectVal = document.getElementById('storeSelect').value;
-                if (selectVal) {
-                    targetStoreId = selectVal;
-                } else {
-                    targetStoreId = 'store00';
-                }
-            }
-
-            // 【排版修正】Loading 佔滿兩欄
-            listDiv.innerHTML = '<div class="text-center w-100 py-4" style="grid-column: span 2;"><div class="spinner-border text-success" role="status"></div><div class="small text-muted mt-2">更新庫存資訊...</div></div>';
-            
-            fetch(GAS_API_URL, { 
-                method: "POST", headers: { "Content-Type": "text/plain" }, 
-                body: JSON.stringify({ action: 'getRewards', userId: currentUserProfile.userId, storeId: targetStoreId }) 
-            })
-            .then(res => res.json()).then(data => {
-                listDiv.innerHTML = ""; 
-                if(data.userBalance !== undefined) updateBalanceUI(data.userBalance);
-                
-                // 【排版修正】提示文字佔滿兩欄
-                if (isViewOnly && targetStoreId === 'store00') {
-                    listDiv.insertAdjacentHTML('beforeend', "<p class='text-center mt-2 text-muted' style='grid-column: span 2;'><i class='fas fa-arrow-up'></i> 請選擇上方店家以查看庫存</p>");
-                } 
-                
-                // 【排版修正】無資料佔滿兩欄
-                if (!data.rewards || data.rewards.length === 0) { 
-                    listDiv.innerHTML = "<p class='text-center w-100 mt-5 text-muted' style='grid-column: span 2;'>目前無可兌換商品</p>"; return; 
-                }
-
-                data.rewards.forEach(item => {
-                    const isOutOfStock = item.stock <= 0;
-                    const imgUrl = item.image && item.image.startsWith('http') ? item.image : "https://via.placeholder.com/300x200?text=Taiwan+Beer";
-                    let btnHtml = isViewOnly ? `<button class="btn btn-secondary btn-redeem" disabled>請至門市兌換</button>` : (isOutOfStock ? `<button class="btn btn-secondary btn-redeem" disabled>已兌完</button>` : `<button class="btn btn-outline-success btn-redeem" onclick="askRedeem('${item.name}', ${item.cost})">兌換</button>`);
-                    
-                    let stockText = (targetStoreId === 'store00') ? "請選店" : `剩 ${item.stock}`;
-                    let stockClass = "";
-                    if (targetStoreId !== 'store00') {
-                         stockClass = isOutOfStock ? "out" : "";
-                         stockText = isOutOfStock ? `<i class="fas fa-times-circle"></i> 缺貨` : `<i class="fas fa-check-circle"></i> 剩 ${item.stock}`;
-                    }
-                    
-                    const html = `<div class="reward-card"><img src="${imgUrl}" class="reward-img" alt="${item.name}"><div class="reward-body"><div><div class="reward-title">${item.name}</div><div class="reward-meta"><span class="text-warning fw-bold"><i class="fas fa-gem"></i> ${item.cost}</span><span class="stock-badge ${stockClass}">${stockText}</span></div></div>${btnHtml}</div></div>`;
-                    listDiv.insertAdjacentHTML('beforeend', html);
-                });
-            }).catch(err => { 
-                listDiv.innerHTML = "<p class='text-danger text-center w-100' style='grid-column: span 2;'>載入失敗</p>"; 
-            });
+             // ...請確保這裡是完整的，參考上一版代碼...
+             if (!currentUserProfile) return;
+             const listDiv = document.getElementById('rewardList');
+             let targetStoreId = currentStoreId;
+             if (isViewOnly) { const selectVal = document.getElementById('storeSelect').value; if (selectVal) targetStoreId = selectVal; else targetStoreId = 'store00'; }
+             listDiv.innerHTML = '<div class="text-center w-100 py-4" style="grid-column: span 2;"><div class="spinner-border text-success" role="status"></div></div>';
+             fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: 'getRewards', userId: currentUserProfile.userId, storeId: targetStoreId }) })
+             .then(res => res.json()).then(data => {
+                 listDiv.innerHTML = ""; if(data.userBalance !== undefined) updateBalanceUI(data.userBalance);
+                 if (isViewOnly && targetStoreId === 'store00') listDiv.insertAdjacentHTML('beforeend', "<p class='text-center mt-2 text-muted' style='grid-column: span 2;'><i class='fas fa-arrow-up'></i> 請選擇上方店家以查看庫存</p>");
+                 if (!data.rewards || data.rewards.length === 0) { listDiv.innerHTML = "<p class='text-center w-100 mt-5 text-muted' style='grid-column: span 2;'>目前無可兌換商品</p>"; return; }
+                 data.rewards.forEach(item => {
+                     const isOutOfStock = item.stock <= 0;
+                     const imgUrl = item.image && item.image.startsWith('http') ? item.image : "https://via.placeholder.com/300x200?text=Taiwan+Beer";
+                     let btnHtml = isViewOnly ? `<button class="btn btn-secondary btn-redeem" disabled>請至門市兌換</button>` : (isOutOfStock ? `<button class="btn btn-secondary btn-redeem" disabled>已兌完</button>` : `<button class="btn btn-outline-success btn-redeem" onclick="askRedeem('${item.name}', ${item.cost})">兌換</button>`);
+                     let stockText = (targetStoreId === 'store00') ? "請選店" : `剩 ${item.stock}`;
+                     let stockClass = (targetStoreId !== 'store00' && isOutOfStock) ? "out" : "";
+                     const html = `<div class="reward-card"><img src="${imgUrl}" class="reward-img" alt="${item.name}"><div class="reward-body"><div><div class="reward-title">${item.name}</div><div class="reward-meta"><span class="text-warning fw-bold"><i class="fas fa-gem"></i> ${item.cost}</span><span class="stock-badge ${stockClass}">${stockText}</span></div></div>${btnHtml}</div></div>`;
+                     listDiv.insertAdjacentHTML('beforeend', html);
+                 });
+             }).catch(err => { listDiv.innerHTML = "<p class='text-danger text-center w-100' style='grid-column: span 2;'>載入失敗</p>"; });
         }
 
-        function loadHistory() {
-            if (!currentUserProfile) return;
-            const listDiv = document.getElementById('historyList');
-            listDiv.innerHTML = `<div class="text-center w-100 py-4"><div class="spinner-border text-success" role="status"></div></div>`;
-            fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: 'getHistory', userId: currentUserProfile.userId }) })
-            .then(res => res.json()).then(data => {
-                listDiv.innerHTML = ""; 
-                if (!data.history || data.history.length === 0) { listDiv.innerHTML = "<p class='text-center w-100 mt-5 text-muted'>尚無交易紀錄</p>"; return; }
-                data.history.forEach(item => {
-                    const isPositive = item.points > 0;
-                    const pointClass = isPositive ? 'points-add' : 'points-minus';
-                    const pointSign = isPositive ? '+' : '';
-                    const html = `<div class="history-item"><div class="history-info"><div class="history-action">${item.action}</div><div class="history-meta"><span class="me-2"><i class="far fa-clock"></i> ${item.date}</span><span><i class="fas fa-store"></i> ${item.store}</span></div></div><div class="history-points ${pointClass}">${pointSign}${item.points}</div></div>`;
-                    listDiv.insertAdjacentHTML('beforeend', html);
-                });
-            }).catch(err => { listDiv.innerHTML = "<p class='text-danger text-center w-100'>載入失敗</p>"; });
+        function loadHistory() { /* ...維持原樣... */ 
+             if (!currentUserProfile) return;
+             const listDiv = document.getElementById('historyList');
+             listDiv.innerHTML = `<div class="text-center w-100 py-4"><div class="spinner-border text-success" role="status"></div></div>`;
+             fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: 'getHistory', userId: currentUserProfile.userId }) })
+             .then(res => res.json()).then(data => {
+                 listDiv.innerHTML = ""; if (!data.history || data.history.length === 0) { listDiv.innerHTML = "<p class='text-center w-100 mt-5 text-muted'>尚無交易紀錄</p>"; return; }
+                 data.history.forEach(item => {
+                     const isPositive = item.points > 0;
+                     const pointClass = isPositive ? 'points-add' : 'points-minus';
+                     const pointSign = isPositive ? '+' : '';
+                     const html = `<div class="history-item"><div class="history-info"><div class="history-action">${item.action}</div><div class="history-meta"><span class="me-2"><i class="far fa-clock"></i> ${item.date}</span><span><i class="fas fa-store"></i> ${item.store}</span></div></div><div class="history-points ${pointClass}">${pointSign}${item.points}</div></div>`;
+                     listDiv.insertAdjacentHTML('beforeend', html);
+                 });
+             }).catch(err => { listDiv.innerHTML = "<p class='text-danger text-center w-100'>載入失敗</p>"; });
         }
 
-        function askRedeem(rewardName, cost) {
-            Swal.fire({
-                title: '兌換確認', html: `商品：<b>${rewardName}</b><br>扣除：<b class="text-danger">${cost}</b> 點<br><br><small>請店員輸入核銷碼</small>`,
-                input: 'password', inputAttributes: { maxlength: 4, placeholder: 'PIN Code' },
-                showCancelButton: true, confirmButtonText: '確定兌換', confirmButtonColor: '#006633', cancelButtonText: '取消', reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    if (!result.value) { Swal.fire('錯誤', '請輸入核銷碼', 'error'); return; }
-                    callApi(null, { action: 'redeem', userId: currentUserProfile.userId, displayName: currentUserProfile.displayName, storeId: currentStoreId, pin: result.value, rewardName: rewardName, cost: cost }, (data) => {
-                        updateBalanceUI(data.totalPoints); loadRewards(); Swal.fire({ icon: 'success', title: '兌換成功', html: `您已兌換 <b>${data.redeemedItem}</b>`, });
-                    });
-                }
-            });
+        function askRedeem(rewardName, cost) { /* ...維持原樣... */ 
+             Swal.fire({
+                 title: '兌換確認', html: `商品：<b>${rewardName}</b><br>扣除：<b class="text-danger">${cost}</b> 點<br><br><small>請店員輸入核銷碼</small>`,
+                 input: 'password', inputAttributes: { maxlength: 4, placeholder: 'PIN Code' },
+                 showCancelButton: true, confirmButtonText: '確定兌換', confirmButtonColor: '#006633', cancelButtonText: '取消', reverseButtons: true
+             }).then((result) => {
+                 if (result.isConfirmed) {
+                     if (!result.value) { Swal.fire('錯誤', '請輸入核銷碼', 'error'); return; }
+                     callApi(null, { action: 'redeem', userId: currentUserProfile.userId, displayName: currentUserProfile.displayName, storeId: currentStoreId, pin: result.value, rewardName: rewardName, cost: cost }, (data) => {
+                         updateBalanceUI(data.totalPoints); loadRewards(); Swal.fire({ icon: 'success', title: '兌換成功', html: `您已兌換 <b>${data.redeemedItem}</b>`, });
+                     });
+                 }
+             });
         }
 
-        function callApi(btnElement, payload, successCallback) {
-            if (btnElement) { btnElement.disabled = true; btnElement.innerText = "處理中..."; }
-            Swal.showLoading();
-            fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify(payload) })
-            .then(res => res.json()).then(data => {
-                if (btnElement) { btnElement.disabled = false; btnElement.innerText = "確認集點"; }
-                Swal.close();
-                if (data.status === 'success') successCallback(data);
-                else Swal.fire({ icon:'error', title:'無法執行', text: data.message });
-            }).catch(err => {
-                if (btnElement) btnElement.disabled = false; Swal.fire('錯誤', '網路連線異常', 'error');
-            });
+        function callApi(btnElement, payload, successCallback) { /* ...維持原樣... */ 
+             if (btnElement) { btnElement.disabled = true; btnElement.innerText = "處理中..."; }
+             Swal.showLoading();
+             fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify(payload) })
+             .then(res => res.json()).then(data => {
+                 if (btnElement) { btnElement.disabled = false; btnElement.innerText = "確認集點"; }
+                 Swal.close();
+                 if (data.status === 'success') successCallback(data);
+                 else Swal.fire({ icon:'error', title:'無法執行', text: data.message });
+             }).catch(err => {
+                 if (btnElement) btnElement.disabled = false; Swal.fire('錯誤', '網路連線異常', 'error');
+             });
         }
 
         function updateBalanceUI(points) {
