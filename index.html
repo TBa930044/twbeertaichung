@@ -45,44 +45,28 @@
         .stock-badge { color: var(--primary-color); font-weight: 500;}
         .stock-badge.out { color: #dc3545; }
         
-        /* 轉盤樣式 */
         .wheel-container { position: relative; width: 300px; height: 300px; margin: 0 auto 20px auto; }
         .wheel {
             width: 100%; height: 100%; border-radius: 50%; border: 10px solid #004d26;
             position: relative; overflow: hidden; transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
-            background: conic-gradient(
-                #FFC107 0% 16.66%, 
-                #ffffff 16.66% 33.33%, 
-                #FFC107 33.33% 50%, 
-                #ffffff 50% 66.66%, 
-                #FFC107 66.66% 83.33%, 
-                #ffffff 83.33% 100%
-            );
+            background: conic-gradient(#FFC107 0% 16.66%, #ffffff 16.66% 33.33%, #FFC107 33.33% 50%, #ffffff 50% 66.66%, #FFC107 66.66% 83.33%, #ffffff 83.33% 100%);
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
-        .wheel-text {
-            position: absolute; top: 50%; left: 50%; width: 100%; height: 100%;
-            transform-origin: 0 0; text-align: center; padding-top: 15px; font-weight: bold; font-size: 0.9rem; color: #333;
-        }
-        /* 轉盤 6 格文字定位 */
-        .txt-1 { transform: rotate(30deg) translateY(-140px) translateX(-50%); } /* 拉桿冰桶 */
-        .txt-2 { transform: rotate(90deg) translateY(-140px) translateX(-50%); } /* 銘謝 */
-        .txt-3 { transform: rotate(150deg) translateY(-140px) translateX(-50%); } /* 行李箱 */
-        .txt-4 { transform: rotate(210deg) translateY(-140px) translateX(-50%); } /* 銘謝 */
-        .txt-5 { transform: rotate(270deg) translateY(-140px) translateX(-50%); } /* 銘謝 */
-        .txt-6 { transform: rotate(330deg) translateY(-140px) translateX(-50%); } /* 銘謝 */
+        .wheel-text { position: absolute; top: 50%; left: 50%; width: 100%; height: 100%; transform-origin: 0 0; text-align: center; padding-top: 15px; font-weight: bold; font-size: 0.9rem; color: #333; }
+        .txt-1 { transform: rotate(30deg) translateY(-140px) translateX(-50%); } 
+        .txt-2 { transform: rotate(90deg) translateY(-140px) translateX(-50%); } 
+        .txt-3 { transform: rotate(150deg) translateY(-140px) translateX(-50%); } 
+        .txt-4 { transform: rotate(210deg) translateY(-140px) translateX(-50%); } 
+        .txt-5 { transform: rotate(270deg) translateY(-140px) translateX(-50%); } 
+        .txt-6 { transform: rotate(330deg) translateY(-140px) translateX(-50%); } 
 
         .wheel-pointer {
             position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
-            width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent;
-            border-top: 40px solid #dc3545; z-index: 10; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+            width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #dc3545; z-index: 10; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
         }
         .wheel-btn {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 70px; height: 70px; background: white; border-radius: 50%;
-            border: 4px solid #004d26; color: #004d26; font-weight: bold; font-size: 1.2rem;
-            display: flex; align-items: center; justify-content: center; z-index: 5;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2); cursor: pointer;
+            width: 70px; height: 70px; background: white; border-radius: 50%; border: 4px solid #004d26; color: #004d26; font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; z-index: 5; box-shadow: 0 0 10px rgba(0,0,0,0.2); cursor: pointer;
         }
         .wheel-btn:active { transform: translate(-50%, -50%) scale(0.95); }
 
@@ -194,7 +178,7 @@
     <div class="bottom-nav">
         <div class="nav-btn active" id="tab-earn" onclick="switchTab('earn')"><i class="fas fa-camera"></i><br>集點</div>
         <div class="nav-btn" id="tab-redeem" onclick="switchTab('redeem')"><i class="fas fa-gift"></i><br>兌換</div>
-        <div class="nav-btn" id="tab-game" onclick="switchTab('game')"><i class="fas fa-dice"></i><br>遊戲</div>
+        <div class="nav-btn" id="tab-game" onclick="switchTab('game')"><i class="fas fa-dharmachakra"></i><br>遊戲</div>
         <div class="nav-btn" id="tab-history" onclick="switchTab('history')"><i class="fas fa-history"></i><br>紀錄</div>
     </div>
 
@@ -230,8 +214,6 @@
                 btn.innerText = "此模式僅供查詢餘額";
                 document.getElementById('storeSelectArea').classList.remove('d-none');
                 loadStoreList(); 
-                // 查詢模式下，遊戲按鈕也要鎖住嗎？通常為了吸引，可以讓他們玩，但不能領獎？
-                // 這裡我們暫不鎖遊戲，消耗的是點數。
             } else {
                 document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-map-marker-alt me-1"></i> ${currentStoreId}`;
             }
@@ -258,12 +240,12 @@
             }).catch(console.error);
         };
 
-        // --- 遊戲邏輯 ---
         let isSpinning = false;
         function doPlayGame() {
             if (isSpinning) return;
             if (!currentUserProfile) return;
 
+            // 這裡不做 StoreID 檢查，因為後端已經開放 store00 玩遊戲
             Swal.fire({
                 title: '幸運大轉盤',
                 text: "確定要扣除 2 點進行抽獎嗎？",
@@ -283,10 +265,9 @@
             isSpinning = true;
             document.getElementById('spinBtn').style.opacity = 0.5;
             
-            // 先發送 API 請求獲取結果
             fetch(GAS_API_URL, { 
                 method: "POST", headers: { "Content-Type": "text/plain" }, 
-                body: JSON.stringify({ action: 'playGame', userId: currentUserProfile.userId, displayName: currentUserProfile.displayName }) 
+                body: JSON.stringify({ action: 'playGame', userId: currentUserProfile.userId, displayName: currentUserProfile.displayName, storeId: currentStoreId }) 
             })
             .then(res => res.json())
             .then(data => {
@@ -297,51 +278,41 @@
                     return;
                 }
                 
-                // 開始轉動動畫
                 const wheel = document.getElementById('wheel');
-                // 每個獎項 60度 (360/6)
-                // 目標 Index: 0~5
-                // 我們要讓指針指到目標。注意：指針在上方(0度)。
-                // 旋轉角度 = 360 * 圈數 + (360 - 目標角度)
-                // 目標 Index 0 (0-60度) -> 指針指中間約 30度 -> 轉 330度
-                // 簡單算法：每個區塊中心點
-                const sliceDeg = 360 / 6;
-                // Index 0 (拉桿) 中心 30度
-                // Index 1 (銘謝) 中心 90度 ...
-                // 為了讓指針指到該區塊，轉盤要轉多少？
-                // 指針在正上方 (0度)，所以如果要指到 30度的區塊，轉盤要逆時針轉 30度 (即 -30 或 330)。
-                // 這裡我們用 CSS rotate，順時針轉。
-                // 轉盤轉 360 - (30 + Index*60)
-                
                 const targetDeg = (data.targetIndex * 60) + 30; 
-                const finalRotate = 3600 + (360 - targetDeg); // 轉 10 圈 + 角度
+                const finalRotate = 3600 + (360 - targetDeg); 
 
                 wheel.style.transform = `rotate(${finalRotate}deg)`;
 
-                // 4秒後顯示結果
                 setTimeout(() => {
                     updateBalanceUI(data.newBalance);
                     
                     if(data.prize === "銘謝惠顧") {
-                        Swal.fire({ title: '真可惜...', text: '這次沒中獎，再接再厲！', icon: 'info' });
+                        Swal.fire({ title: '真可惜...', text: '這次沒中獎，再接再厲！', icon: 'info', confirmButtonColor: '#006633' });
+                        resetWheel(targetDeg);
                     } else {
                         Swal.fire({
-                            title: '恭喜中獎！',
-                            html: `您獲得了：<br><b style="font-size:1.5rem; color:#d63384">${data.prize}</b><br><br><small style="color:red">請截圖此畫面，並至指定門市出示「歷史紀錄」領獎。</small>`,
-                            icon: 'success'
+                            title: '🎉 恭喜中獎！',
+                            html: `<p>您獲得了：<b style="font-size:1.2rem; color:#d63384">${data.prize}</b></p><p class="small text-muted mb-3">請填寫寄送資料，我們將盡快寄出獎品。</p><input id="swal-name" class="swal2-input" placeholder="真實姓名"><input id="swal-phone" class="swal2-input" placeholder="聯絡電話" type="tel"><input id="swal-addr" class="swal2-input" placeholder="收件地址 (含郵遞區號)">`,
+                            icon: 'success',
+                            confirmButtonText: '送出資料',
+                            confirmButtonColor: '#006633',
+                            allowOutsideClick: false,
+                            preConfirm: () => {
+                                const name = document.getElementById('swal-name').value;
+                                const phone = document.getElementById('swal-phone').value;
+                                const addr = document.getElementById('swal-addr').value;
+                                if (!name || !phone || !addr) { Swal.showValidationMessage('請完整填寫所有欄位才能領獎喔！'); return false; }
+                                return { name: name, phone: phone, addr: addr };
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                const infoStr = `${result.value.name} / ${result.value.phone} / ${result.value.addr}`;
+                                submitWinnerInfo(data.prize, infoStr);
+                            }
+                            resetWheel(targetDeg);
                         });
                     }
-                    
-                    // 重置
-                    isSpinning = false;
-                    document.getElementById('spinBtn').style.opacity = 1;
-                    // 為了讓下次能再轉，要把 transition 拿掉瞬間歸零 (偷懶解法：直接保留角度，下次加上去，但這裡先簡單重置視覺)
-                    setTimeout(() => {
-                         wheel.style.transition = 'none';
-                         wheel.style.transform = `rotate(${360 - targetDeg}deg)`;
-                         setTimeout(() => { wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)'; }, 50);
-                    }, 2000);
-
                 }, 4000);
 
             })
@@ -351,8 +322,30 @@
                 Swal.fire('錯誤', '連線失敗', 'error');
             });
         }
-        
-        // --- 以下共用函式 ---
+
+        function submitWinnerInfo(prizeName, infoString) {
+            Swal.fire({ title: '資料傳送中...', didOpen: () => { Swal.showLoading() } });
+            fetch(GAS_API_URL, { 
+                method: "POST", headers: { "Content-Type": "text/plain" }, 
+                body: JSON.stringify({ action: 'submitWinnerInfo', userId: currentUserProfile.userId, prize: prizeName, info: infoString }) 
+            })
+            .then(res => res.json())
+            .then(data => {
+                Swal.fire({ icon: 'success', title: '資料已送出', text: '我們將盡快為您安排寄送！', confirmButtonColor: '#006633' });
+            });
+        }
+
+        function resetWheel(targetDeg) {
+            const wheel = document.getElementById('wheel');
+            isSpinning = false;
+            document.getElementById('spinBtn').style.opacity = 1;
+            setTimeout(() => {
+                 wheel.style.transition = 'none';
+                 wheel.style.transform = `rotate(${360 - targetDeg}deg)`;
+                 setTimeout(() => { wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)'; }, 50);
+            }, 500);
+        }
+
         function loadStoreList() {
             const select = document.getElementById('storeSelect');
             fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: 'getStoreList' }) })
@@ -367,10 +360,7 @@
             }).catch(console.error);
         }
 
-        function doEarn() { /* ...維持原樣... */ 
-             // 為節省篇幅，這裡省略重複代碼，邏輯與上一版相同
-             // 請確保您貼上時，這段 doEarn 函式是完整的
-             // ...
+        function doEarn() {
              if (!currentUserProfile || !currentUserProfile.userId) { Swal.fire({ icon: 'warning', title: '系統連線中', text: '請稍等...', timer: 2000, showConfirmButton: false }); return; }
              if (isViewOnly) return;
              const pointsInput = document.getElementById('inputPoints');
@@ -389,7 +379,7 @@
         }
 
         function switchTab(tabName) {
-            ['earn', 'redeem', 'game', 'history'].forEach(t => { // 增加 game
+            ['earn', 'redeem', 'game', 'history'].forEach(t => {
                 document.getElementById('tab-' + t).classList.remove('active');
                 document.getElementById('page-' + t).classList.add('d-none');
             });
@@ -400,12 +390,11 @@
         }
         
         function loadRewards() {
-             // ...請確保這裡是完整的，參考上一版代碼...
              if (!currentUserProfile) return;
              const listDiv = document.getElementById('rewardList');
              let targetStoreId = currentStoreId;
              if (isViewOnly) { const selectVal = document.getElementById('storeSelect').value; if (selectVal) targetStoreId = selectVal; else targetStoreId = 'store00'; }
-             listDiv.innerHTML = '<div class="text-center w-100 py-4" style="grid-column: span 2;"><div class="spinner-border text-success" role="status"></div></div>';
+             listDiv.innerHTML = '<div class="text-center w-100 py-4" style="grid-column: span 2;"><div class="spinner-border text-success" role="status"></div><div class="small text-muted mt-2">更新庫存資訊...</div></div>';
              fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: 'getRewards', userId: currentUserProfile.userId, storeId: targetStoreId }) })
              .then(res => res.json()).then(data => {
                  listDiv.innerHTML = ""; if(data.userBalance !== undefined) updateBalanceUI(data.userBalance);
@@ -423,7 +412,7 @@
              }).catch(err => { listDiv.innerHTML = "<p class='text-danger text-center w-100' style='grid-column: span 2;'>載入失敗</p>"; });
         }
 
-        function loadHistory() { /* ...維持原樣... */ 
+        function loadHistory() {
              if (!currentUserProfile) return;
              const listDiv = document.getElementById('historyList');
              listDiv.innerHTML = `<div class="text-center w-100 py-4"><div class="spinner-border text-success" role="status"></div></div>`;
@@ -440,7 +429,7 @@
              }).catch(err => { listDiv.innerHTML = "<p class='text-danger text-center w-100'>載入失敗</p>"; });
         }
 
-        function askRedeem(rewardName, cost) { /* ...維持原樣... */ 
+        function askRedeem(rewardName, cost) {
              Swal.fire({
                  title: '兌換確認', html: `商品：<b>${rewardName}</b><br>扣除：<b class="text-danger">${cost}</b> 點<br><br><small>請店員輸入核銷碼</small>`,
                  input: 'password', inputAttributes: { maxlength: 4, placeholder: 'PIN Code' },
@@ -455,7 +444,7 @@
              });
         }
 
-        function callApi(btnElement, payload, successCallback) { /* ...維持原樣... */ 
+        function callApi(btnElement, payload, successCallback) {
              if (btnElement) { btnElement.disabled = true; btnElement.innerText = "處理中..."; }
              Swal.showLoading();
              fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify(payload) })
