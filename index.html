@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>(中部)台啤集點活動</title>
+    <title>TTL 會員專區</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -45,6 +45,7 @@
         .stock-badge { color: var(--primary-color); font-weight: 500;}
         .stock-badge.out { color: #dc3545; }
         
+        /* 轉盤樣式 */
         .wheel-container { position: relative; width: 300px; height: 300px; margin: 0 auto 20px auto; }
         .wheel {
             width: 100%; height: 100%; border-radius: 50%; border: 10px solid #004d26;
@@ -52,6 +53,15 @@
             background: conic-gradient(#FFC107 0% 16.66%, #ffffff 16.66% 33.33%, #FFC107 33.33% 50%, #ffffff 50% 66.66%, #FFC107 66.66% 83.33%, #ffffff 83.33% 100%);
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
+        /* 轉盤空轉動畫 */
+        @keyframes spin-loading {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .wheel-loading {
+            animation: spin-loading 0.6s linear infinite; 
+        }
+
         .wheel-text { position: absolute; top: 50%; left: 50%; width: 100%; height: 100%; transform-origin: 0 0; text-align: center; padding-top: 15px; font-weight: bold; font-size: 0.9rem; color: #333; }
         .txt-1 { transform: rotate(30deg) translateY(-140px) translateX(-50%); } 
         .txt-2 { transform: rotate(90deg) translateY(-140px) translateX(-50%); } 
@@ -240,12 +250,12 @@
             }).catch(console.error);
         };
 
+        // --- 遊戲邏輯 ---
         let isSpinning = false;
         function doPlayGame() {
             if (isSpinning) return;
             if (!currentUserProfile) return;
 
-            // 這裡不做 StoreID 檢查，因為後端已經開放 store00 玩遊戲
             Swal.fire({
                 title: '幸運大轉盤',
                 text: "確定要扣除 2 點進行抽獎嗎？",
@@ -262,9 +272,17 @@
         }
 
         function startSpin() {
+            if (isSpinning) return;
             isSpinning = true;
             document.getElementById('spinBtn').style.opacity = 0.5;
             
+            const wheel = document.getElementById('wheel');
+            
+            // 1. 立即啟動「無限空轉」動畫 (無延遲感)
+            wheel.style.transition = 'none';
+            wheel.classList.add('wheel-loading');
+
+            // 2. 發送 API 請求
             fetch(GAS_API_URL, { 
                 method: "POST", headers: { "Content-Type": "text/plain" }, 
                 body: JSON.stringify({ action: 'playGame', userId: currentUserProfile.userId, displayName: currentUserProfile.displayName, storeId: currentStoreId }) 
@@ -272,16 +290,21 @@
             .then(res => res.json())
             .then(data => {
                 if(data.status !== 'success') {
+                    wheel.classList.remove('wheel-loading');
                     Swal.fire('錯誤', data.message, 'error');
                     isSpinning = false;
                     document.getElementById('spinBtn').style.opacity = 1;
                     return;
                 }
                 
-                const wheel = document.getElementById('wheel');
+                // 3. 資料回來，切換為「減速停下」動畫
+                wheel.classList.remove('wheel-loading');
                 const targetDeg = (data.targetIndex * 60) + 30; 
-                const finalRotate = 3600 + (360 - targetDeg); 
+                const finalRotate = 1800 + (360 - targetDeg); // 多轉 5 圈 (1800度)
 
+                void wheel.offsetWidth; // 強制重繪
+
+                wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
                 wheel.style.transform = `rotate(${finalRotate}deg)`;
 
                 setTimeout(() => {
@@ -291,6 +314,7 @@
                         Swal.fire({ title: '真可惜...', text: '這次沒中獎，再接再厲！', icon: 'info', confirmButtonColor: '#006633' });
                         resetWheel(targetDeg);
                     } else {
+                        // 中獎：跳出填寫資料視窗
                         Swal.fire({
                             title: '🎉 恭喜中獎！',
                             html: `<p>您獲得了：<b style="font-size:1.2rem; color:#d63384">${data.prize}</b></p><p class="small text-muted mb-3">請填寫寄送資料，我們將盡快寄出獎品。</p><input id="swal-name" class="swal2-input" placeholder="真實姓名"><input id="swal-phone" class="swal2-input" placeholder="聯絡電話" type="tel"><input id="swal-addr" class="swal2-input" placeholder="收件地址 (含郵遞區號)">`,
@@ -317,6 +341,7 @@
 
             })
             .catch(err => {
+                wheel.classList.remove('wheel-loading');
                 isSpinning = false;
                 document.getElementById('spinBtn').style.opacity = 1;
                 Swal.fire('錯誤', '連線失敗', 'error');
@@ -341,6 +366,7 @@
             document.getElementById('spinBtn').style.opacity = 1;
             setTimeout(() => {
                  wheel.style.transition = 'none';
+                 // 視覺重置，讓下次轉動角度計算正確
                  wheel.style.transform = `rotate(${360 - targetDeg}deg)`;
                  setTimeout(() => { wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)'; }, 50);
             }, 500);
@@ -394,6 +420,7 @@
              const listDiv = document.getElementById('rewardList');
              let targetStoreId = currentStoreId;
              if (isViewOnly) { const selectVal = document.getElementById('storeSelect').value; if (selectVal) targetStoreId = selectVal; else targetStoreId = 'store00'; }
+             // 排版修正：grid-column: span 2
              listDiv.innerHTML = '<div class="text-center w-100 py-4" style="grid-column: span 2;"><div class="spinner-border text-success" role="status"></div><div class="small text-muted mt-2">更新庫存資訊...</div></div>';
              fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: 'getRewards', userId: currentUserProfile.userId, storeId: targetStoreId }) })
              .then(res => res.json()).then(data => {
