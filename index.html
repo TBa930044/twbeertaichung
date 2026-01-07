@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TTL 會員專區</title>
+    <title>(中部)台啤集點活動</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -45,7 +45,6 @@
         .stock-badge { color: var(--primary-color); font-weight: 500;}
         .stock-badge.out { color: #dc3545; }
         
-        /* 轉盤樣式 */
         .wheel-container { position: relative; width: 300px; height: 300px; margin: 0 auto 20px auto; }
         .wheel {
             width: 100%; height: 100%; border-radius: 50%; border: 10px solid #004d26;
@@ -53,14 +52,11 @@
             background: conic-gradient(#FFC107 0% 16.66%, #ffffff 16.66% 33.33%, #FFC107 33.33% 50%, #ffffff 50% 66.66%, #FFC107 66.66% 83.33%, #ffffff 83.33% 100%);
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
-        /* 轉盤空轉動畫 */
         @keyframes spin-loading {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        .wheel-loading {
-            animation: spin-loading 0.6s linear infinite; 
-        }
+        .wheel-loading { animation: spin-loading 0.6s linear infinite; }
 
         .wheel-text { position: absolute; top: 50%; left: 50%; width: 100%; height: 100%; transform-origin: 0 0; text-align: center; padding-top: 15px; font-weight: bold; font-size: 0.9rem; color: #333; }
         .txt-1 { transform: rotate(30deg) translateY(-140px) translateX(-50%); } 
@@ -96,6 +92,10 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .store-select-container { background-color: #fff; padding: 15px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid var(--primary-color); }
         .form-select-custom { border: 2px solid #eee; border-radius: 8px; padding: 10px; font-size: 1rem; width: 100%; background-color: #fafafa; }
+        
+        /* 圖片連結樣式 */
+        .prize-link { cursor: pointer; color: #0d6efd; transition: color 0.2s; text-decoration: none; display: inline-block; padding: 5px; }
+        .prize-link:hover { color: #004d26; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -168,10 +168,17 @@
                     </div>
                     <div class="wheel-btn" onclick="doPlayGame()" id="spinBtn">GO</div>
                 </div>
-                <div class="small text-muted mt-2">
-                    <i class="fas fa-gift"></i> 大獎：拉桿冰桶 (極稀有)<br>
-                    <i class="fas fa-suitcase"></i> 二獎：20吋空軍藍行李箱
+                
+                <div class="mt-3">
+                    <div class="prize-link" onclick="showPrizeImage('拉桿冰桶', 'https://github.com/TBa930044/twbeertaichung/blob/main/ice.png?raw=true')">
+                        <i class="fas fa-gift"></i> 大獎：拉桿冰桶 (極稀有) <i class="fas fa-search-plus small"></i>
+                    </div>
+                    <br>
+                    <div class="prize-link" onclick="showPrizeImage('20吋空軍藍行李箱', 'https://eshop.ttl.com.tw/uploadphoto/images/thumbs/0000487_taiwan-beer-x-eminent-20_600.jpeg')">
+                        <i class="fas fa-suitcase"></i> 二獎：20吋空軍藍行李箱 <i class="fas fa-search-plus small"></i>
+                    </div>
                 </div>
+
             </div>
             <div style="height: 100px;"></div> 
         </div>
@@ -250,12 +257,24 @@
             }).catch(console.error);
         };
 
-        // --- 遊戲邏輯 ---
+        // --- 新增：顯示獎品大圖 ---
+        function showPrizeImage(title, imgUrl) {
+            Swal.fire({
+                title: title,
+                imageUrl: imgUrl,
+                imageWidth: 300,
+                imageAlt: title,
+                confirmButtonText: '關閉',
+                confirmButtonColor: '#006633'
+            });
+        }
+
         let isSpinning = false;
         function doPlayGame() {
             if (isSpinning) return;
             if (!currentUserProfile) return;
 
+            // 這裡不做 StoreID 檢查，因為後端已經開放 store00 玩遊戲
             Swal.fire({
                 title: '幸運大轉盤',
                 text: "確定要扣除 2 點進行抽獎嗎？",
