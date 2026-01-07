@@ -93,7 +93,6 @@
         .store-select-container { background-color: #fff; padding: 15px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid var(--primary-color); }
         .form-select-custom { border: 2px solid #eee; border-radius: 8px; padding: 10px; font-size: 1rem; width: 100%; background-color: #fafafa; }
         
-        /* 圖片連結樣式 */
         .prize-link { cursor: pointer; color: #0d6efd; transition: color 0.2s; text-decoration: none; display: inline-block; padding: 5px; }
         .prize-link:hover { color: #004d26; text-decoration: underline; }
     </style>
@@ -257,15 +256,23 @@
             }).catch(console.error);
         };
 
-        // --- 新增：顯示獎品大圖 ---
+        // --- 修正版：防誤觸大圖 ---
         function showPrizeImage(title, imgUrl) {
             Swal.fire({
                 title: title,
-                imageUrl: imgUrl,
-                imageWidth: 300,
-                imageAlt: title,
-                confirmButtonText: '關閉',
-                confirmButtonColor: '#006633'
+                // 自訂 HTML：將關閉按鈕放在圖片上方
+                html: `
+                    <div class="mb-3">
+                        <button onclick="Swal.close()" class="btn btn-success w-100 fw-bold" style="background-color: #006633; border-color: #006633; padding: 12px; font-size: 1.1rem;">
+                            <i class="fas fa-times-circle"></i> 關閉圖片
+                        </button>
+                    </div>
+                    <img src="${imgUrl}" style="width:100%; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+                `,
+                showConfirmButton: false, // 隱藏底部按鈕
+                showCloseButton: false,   // 隱藏右上角小 X (避免誤按 LIFF X)
+                allowOutsideClick: true,  // 允許點擊旁邊空白處關閉
+                customClass: { popup: 'swal-wide' }
             });
         }
 
@@ -274,7 +281,6 @@
             if (isSpinning) return;
             if (!currentUserProfile) return;
 
-            // 這裡不做 StoreID 檢查，因為後端已經開放 store00 玩遊戲
             Swal.fire({
                 title: '幸運大轉盤',
                 text: "確定要扣除 2 點進行抽獎嗎？",
@@ -296,12 +302,9 @@
             document.getElementById('spinBtn').style.opacity = 0.5;
             
             const wheel = document.getElementById('wheel');
-            
-            // 1. 立即啟動「無限空轉」動畫 (無延遲感)
             wheel.style.transition = 'none';
             wheel.classList.add('wheel-loading');
 
-            // 2. 發送 API 請求
             fetch(GAS_API_URL, { 
                 method: "POST", headers: { "Content-Type": "text/plain" }, 
                 body: JSON.stringify({ action: 'playGame', userId: currentUserProfile.userId, displayName: currentUserProfile.displayName, storeId: currentStoreId }) 
@@ -316,12 +319,11 @@
                     return;
                 }
                 
-                // 3. 資料回來，切換為「減速停下」動畫
                 wheel.classList.remove('wheel-loading');
                 const targetDeg = (data.targetIndex * 60) + 30; 
-                const finalRotate = 1800 + (360 - targetDeg); // 多轉 5 圈 (1800度)
+                const finalRotate = 1800 + (360 - targetDeg); 
 
-                void wheel.offsetWidth; // 強制重繪
+                void wheel.offsetWidth; 
 
                 wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
                 wheel.style.transform = `rotate(${finalRotate}deg)`;
@@ -333,7 +335,6 @@
                         Swal.fire({ title: '真可惜...', text: '這次沒中獎，再接再厲！', icon: 'info', confirmButtonColor: '#006633' });
                         resetWheel(targetDeg);
                     } else {
-                        // 中獎：跳出填寫資料視窗
                         Swal.fire({
                             title: '🎉 恭喜中獎！',
                             html: `<p>您獲得了：<b style="font-size:1.2rem; color:#d63384">${data.prize}</b></p><p class="small text-muted mb-3">請填寫寄送資料，我們將盡快寄出獎品。</p><input id="swal-name" class="swal2-input" placeholder="真實姓名"><input id="swal-phone" class="swal2-input" placeholder="聯絡電話" type="tel"><input id="swal-addr" class="swal2-input" placeholder="收件地址 (含郵遞區號)">`,
@@ -385,7 +386,6 @@
             document.getElementById('spinBtn').style.opacity = 1;
             setTimeout(() => {
                  wheel.style.transition = 'none';
-                 // 視覺重置，讓下次轉動角度計算正確
                  wheel.style.transform = `rotate(${360 - targetDeg}deg)`;
                  setTimeout(() => { wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)'; }, 50);
             }, 500);
@@ -439,7 +439,6 @@
              const listDiv = document.getElementById('rewardList');
              let targetStoreId = currentStoreId;
              if (isViewOnly) { const selectVal = document.getElementById('storeSelect').value; if (selectVal) targetStoreId = selectVal; else targetStoreId = 'store00'; }
-             // 排版修正：grid-column: span 2
              listDiv.innerHTML = '<div class="text-center w-100 py-4" style="grid-column: span 2;"><div class="spinner-border text-success" role="status"></div><div class="small text-muted mt-2">更新庫存資訊...</div></div>';
              fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: 'getRewards', userId: currentUserProfile.userId, storeId: targetStoreId }) })
              .then(res => res.json()).then(data => {
