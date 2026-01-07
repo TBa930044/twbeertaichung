@@ -372,22 +372,34 @@
             });
         }
 
-        function registerUser(userId, data) {
+function registerUser(userId, data) {
             Swal.fire({ title: '資料建立中...', didOpen: () => { Swal.showLoading() } });
+            
+            // 確保有抓到暱稱，如果沒有則預設為空字串
+            var nickName = (currentUserProfile && currentUserProfile.displayName) ? currentUserProfile.displayName : "未知暱稱";
+
             fetch(GAS_API_URL, { 
                 method: "POST", headers: { "Content-Type": "text/plain" }, 
-                body: JSON.stringify({ action: 'registerUser', userId: userId, name: data.name, phone: data.phone, dob: data.dob }) 
+                body: JSON.stringify({ 
+                    action: 'registerUser', 
+                    userId: userId, 
+                    displayName: nickName, // ★ 新增這一行：傳送 LINE 暱稱
+                    name: data.name,       // 這是真實姓名
+                    phone: data.phone, 
+                    dob: data.dob 
+                }) 
             })
             .then(res => res.json())
             .then(resData => {
                 if (resData.status === 'success') {
                     Swal.fire({ icon: 'success', title: '註冊成功', text: '歡迎參加活動！', confirmButtonColor: '#006633' });
+                    // 註冊成功後，重新整理頁面或重新檢查餘額以更新顯示
+                    checkBalanceAndRegister(userId);
                 } else {
                     Swal.fire('錯誤', '註冊失敗，請重試', 'error').then(() => showRegistrationModal(userId));
                 }
             });
         }
-
         function showTerms(userId) {
             Swal.fire({
                 title: '活動辦法暨個資聲明',
