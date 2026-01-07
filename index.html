@@ -12,8 +12,8 @@
     <style>
         :root { --primary-color: #006633; --accent-color: #FFC107; --bg-color: #f4f6f8; }
         
-        /* 1. 修改：微調底部留白空間，配合變高的警語 */
-        body { background-color: var(--bg-color); font-family: "Microsoft JhengHei", sans-serif; padding-bottom: 160px; }
+        /* 1. 修改：大幅增加底部留白至 25vh，確保連結可以滑到最上方，不被警語蓋住 */
+        body { background-color: var(--bg-color); font-family: "Microsoft JhengHei", sans-serif; padding-bottom: 25vh; }
         
         .header-section {
             background: linear-gradient(135deg, #004d26 0%, #008040 100%); color: white; padding: 25px 20px;
@@ -53,7 +53,7 @@
         /* 導覽列樣式 */
         .bottom-nav { 
             position: fixed; 
-            bottom: 88px; /* 2. 修改：微調導覽列位置，避開放大後的警語 */
+            bottom: 14vh; /* 2. 修改：導覽列再往上推，避開放大的警語 */
             left: 50%; transform: translateX(-50%); 
             width: 95%; max-width: 400px; 
             background: white; border-radius: 50px; 
@@ -65,34 +65,16 @@
         
         .nav-btn { 
             flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center; 
-            align-items: center;
-            text-align: center; 
-            padding: 8px 0; 
-            border-radius: 40px; 
-            color: #aaa; 
-            font-weight: bold; 
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
-            cursor: pointer; 
-            font-size: 0.75rem; 
-            line-height: 1.2;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; padding: 8px 0; border-radius: 40px; 
+            color: #aaa; font-weight: bold; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+            cursor: pointer; font-size: 0.75rem; line-height: 1.2;
         }
         
-        .nav-btn i {
-            font-size: 1.4rem; 
-            margin-bottom: 4px; 
-        }
+        .nav-btn i { font-size: 1.4rem; margin-bottom: 4px; }
+        .nav-btn.active { background-color: var(--primary-color); color: white; box-shadow: 0 4px 12px rgba(0,102,51,0.3); }
 
-        .nav-btn.active { 
-            background-color: var(--primary-color); 
-            color: white; 
-            box-shadow: 0 4px 12px rgba(0,102,51,0.3); 
-        }
-        /* ------------------------------- */
-
-        /* 3. 修改重點：警語區塊放大 */
+        /* 3. 修改：警語區塊放大設定 */
         .warning-footer {
             position: fixed; bottom: 0; left: 0; width: 100%;
             background: transparent;
@@ -100,15 +82,13 @@
             display: flex; justify-content: center; align-items: flex-end;
             padding: 0;
             box-shadow: none; 
-            /* 新增：整體放大 103%，基準點設為底部中央 */
+            /* 關鍵：放大 103%，基準點設為底部中央 (向上長高) */
             transform: scale(1.03);
             transform-origin: bottom center;
         }
         
         .warning-img {
-            width: 100%;        
-            height: auto;       
-            display: block;    
+            width: 100%; height: auto; display: block;    
         }
 
         .form-control-custom { border: 2px solid #eee; border-radius: 12px; padding: 14px; font-size: 1.1rem; text-align: center; background-color: #fafafa; }
@@ -137,7 +117,18 @@
         .reward-meta { font-size: 0.8rem; color: #666; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         .store-select-container { background-color: #fff; padding: 15px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid var(--primary-color); }
         .form-select-custom { border: 2px solid #eee; border-radius: 8px; padding: 10px; font-size: 1rem; width: 100%; background-color: #fafafa; }
-        .prize-link { cursor: pointer; color: #0d6efd; transition: color 0.2s; text-decoration: none; display: inline-block; padding: 5px; }
+        
+        /* 4. 修改：連結樣式增加 Z-Index，確保不被覆蓋 */
+        .prize-link { 
+            cursor: pointer; 
+            color: #0d6efd; 
+            transition: color 0.2s; 
+            text-decoration: none; 
+            display: inline-block; 
+            padding: 5px;
+            position: relative; /* 關鍵 */
+            z-index: 10;        /* 關鍵：提高層級，保證可點擊 */
+        }
     </style>
 </head>
 <body>
@@ -419,6 +410,14 @@
                 allowOutsideClick: false
             }).then(() => {
                 showRegistrationModal(userId);
+            });
+        }
+
+        function showPrizeImage(title, imgUrl) {
+            Swal.fire({
+                title: title,
+                html: `<div class="mb-3"><button onclick="Swal.close()" class="btn btn-success w-100 fw-bold" style="background-color: #006633; border-color: #006633; padding: 12px; font-size: 1.1rem;"><i class="fas fa-times-circle"></i> 關閉圖片</button></div><img src="${imgUrl}" style="width:100%; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1);">`,
+                showConfirmButton: false, showCloseButton: false, allowOutsideClick: true, customClass: { popup: 'swal-wide' }
             });
         }
 
