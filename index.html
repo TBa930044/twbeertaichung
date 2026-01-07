@@ -12,8 +12,8 @@
     <style>
         :root { --primary-color: #006633; --accent-color: #FFC107; --bg-color: #f4f6f8; }
         
-        /* 1. 修改：增加底部留白，避免內容被變高的警語擋住 */
-        body { background-color: var(--bg-color); font-family: "Microsoft JhengHei", sans-serif; padding-bottom: 15vh; }
+        /* 1. 修改：底部留白加大，配合變高的警語 */
+        body { background-color: var(--bg-color); font-family: "Microsoft JhengHei", sans-serif; padding-bottom: 16vh; }
         
         .header-section {
             background: linear-gradient(135deg, #004d26 0%, #008040 100%); color: white; padding: 25px 20px;
@@ -53,8 +53,8 @@
         /* 導覽列與警語樣式 */
         .bottom-nav { 
             position: fixed; 
-            /* 2. 修改：將導覽列向上推，避免被警語擋住 (原本是 60px) */
-            bottom: 11vh; 
+            /* 2. 修改：將導覽列再往上推，避免被加高的警語擋住 */
+            bottom: 13vh; 
             left: 50%; transform: translateX(-50%); 
             width: 95%; max-width: 400px; 
             background: white; border-radius: 50px; 
@@ -64,21 +64,21 @@
         .nav-btn { flex: 1; text-align: center; padding: 12px 0; border-radius: 40px; color: #aaa; font-weight: bold; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 0.85rem; }
         .nav-btn.active { background-color: var(--primary-color); color: white; box-shadow: 0 4px 12px rgba(0,102,51,0.3); }
 
-        /* 3. 修改：固定底部警語 - 強制高度 */
+        /* 3. 修改：警語背景色改為灰色 (#D9D9D9)，高度改為 12vh */
         .warning-footer {
             position: fixed; bottom: 0; left: 0; width: 100%;
-            height: 10vh; /* 設定高度為螢幕的 10% */
-            min-height: 70px; /* 最小高度 70px */
-            background-color: black; 
+            height: 12vh;       /* 設定高度為螢幕的 12% (加高) */
+            min-height: 80px;   /* 最小高度 80px */
+            background-color: #D9D9D9; /* 改為淺灰色，與您的圖片一致 */
             z-index: 9999;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1); /* 陰影改淡一點 */
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 5px 0;
+            padding: 0;
         }
         
-        /* 4. 修改：警語圖片樣式 */
+        /* 4. 修改：警語圖片設定 */
         .warning-img {
             height: 100%;       /* 填滿高度 */
             width: 100%;        /* 填滿寬度 */
@@ -273,14 +273,12 @@
                             btn.disabled = false;
                             btn.innerText = "確認集點";
                         }
-                        // 檢查餘額 + 是否註冊
                         checkBalanceAndRegister(profile.userId);
                     });
                 }
             }).catch(console.error);
         };
 
-        // --- 新增：檢查註冊狀態 ---
         function checkBalanceAndRegister(userId) {
             fetch(GAS_API_URL, { 
                 method: "POST", headers: { "Content-Type": "text/plain" }, 
@@ -290,8 +288,6 @@
             .then(data => {
                 document.getElementById('headerPoints').style.fontSize = "3.8rem";
                 if(data.userBalance !== undefined) updateBalanceUI(data.userBalance);
-                
-                // 如果後端回傳尚未註冊，跳出註冊視窗
                 if (data.isRegistered === false) {
                     showRegistrationModal(userId);
                 }
@@ -299,27 +295,21 @@
             .catch(err => { document.getElementById('headerPoints').innerText = "---"; });
         }
 
-        // --- 新增：註冊彈窗 ---
         function showRegistrationModal(userId) {
             Swal.fire({
                 title: '第一次掃描前<br>請先填寫基本資料',
                 html: `
                     <div style="font-size:0.9rem; color:#666; margin-bottom:15px;">以作為後續贈品寄送使用</div>
-                    
                     <label class="reg-label">真實姓名</label>
                     <input id="reg-name" class="reg-input" placeholder="王小明">
-                    
                     <label class="reg-label">連絡電話</label>
                     <input id="reg-phone" class="reg-input" type="tel" placeholder="0912345678">
-                    
                     <label class="reg-label">出生日期</label>
                     <input id="reg-dob" class="reg-input" type="date">
-                    
                     <div class="reg-check-group">
                         <input type="checkbox" id="check-age">
                         <label for="check-age">我是設籍且居住於中華民國之年滿18足歲本國公民</label>
                     </div>
-                    
                     <div class="reg-check-group">
                         <input type="checkbox" id="check-terms">
                         <label for="check-terms">我已詳閱了解並同意遵守本活動所公布的 <span class="reg-link" onclick="showTerms('${userId}')">活動辦法暨個人資料同意聲明</span></label>
@@ -336,25 +326,19 @@
                     const dob = document.getElementById('reg-dob').value;
                     const checkAge = document.getElementById('check-age').checked;
                     const checkTerms = document.getElementById('check-terms').checked;
-
                     if (!name || !phone || !dob) { Swal.showValidationMessage('請填寫所有欄位'); return false; }
                     if (!checkAge) { Swal.showValidationMessage('必須年滿18歲才能參加'); return false; }
                     if (!checkTerms) { Swal.showValidationMessage('請同意活動辦法'); return false; }
-
-                    // 計算年齡
                     const today = new Date();
                     const birthDate = new Date(dob);
                     let age = today.getFullYear() - birthDate.getFullYear();
                     const m = today.getMonth() - birthDate.getMonth();
                     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; }
-                    
                     if (age < 18) { Swal.showValidationMessage('抱歉，您未滿18歲，無法參加本活動。'); return false; }
-
                     return { name: name, phone: phone, dob: dob };
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // 送出註冊資料
                     registerUser(userId, result.value);
                 }
             });
@@ -364,13 +348,7 @@
             Swal.fire({ title: '資料建立中...', didOpen: () => { Swal.showLoading() } });
             fetch(GAS_API_URL, { 
                 method: "POST", headers: { "Content-Type": "text/plain" }, 
-                body: JSON.stringify({ 
-                    action: 'registerUser', 
-                    userId: userId, 
-                    name: data.name, 
-                    phone: data.phone, 
-                    dob: data.dob 
-                }) 
+                body: JSON.stringify({ action: 'registerUser', userId: userId, name: data.name, phone: data.phone, dob: data.dob }) 
             })
             .then(res => res.json())
             .then(resData => {
@@ -382,71 +360,31 @@
             });
         }
 
-function showTerms(userId) {
+        function showTerms(userId) {
             Swal.fire({
                 title: '活動辦法暨個資聲明',
-                // ▼▼▼ 這裡開始是您的完整條款內容 ▼▼▼
                 html: `
                     <div style="text-align:left; max-height:60vh; overflow-y:auto; font-size:0.9rem; line-height:1.6; padding-right:5px;">
-                        
                         <h5 style="color:#006633; font-weight:bold; border-bottom: 2px solid #FFC107; padding-bottom:5px;">一、活動辦法</h5>
                         <p>非常感謝您參與(中部)台灣啤酒集點活動(以下簡稱本活動)。在暢飲台灣啤酒時，記得理性飲酒，我們重視您的身心健康與安全，希望台灣啤酒能持續陪伴您人生中各種時刻，並享受本次活動給您的體驗。</p>
-                        
-                        <p><strong>【活動說明】</strong><br>
-                        集點活動期間，於指定通路消費0.6L瓶裝18天生啤酒或金牌ONE啤酒任1瓶，即可參加活動。</p>
-
-                        <p><strong>【活動機制】</strong><br>
-                        於結帳時，輸入本次消費瓶數，經結帳人員確認後，即可獲得點數(1瓶1點)。點數可於本活動平台兌換好禮或是消耗2點以小博大參加轉盤遊戲。</p>
-
-                        <p><strong>【活動期間】</strong><br>
-                        2026年4月1日00:00起至2026年5月31日23:59結束。</p>
-
-                        <p><strong>【點數兌換期間】</strong><br>
-                        2026年4月1日00:00起至2026年6月30日23:59結束。</p>
-
-                        <p><strong>【注意事項】</strong><br>
-                        1. 本活動主辦單位為臺灣菸酒公司臺中營業處。<br>
-                        2. 本活動限年滿18足歲者始得參加。<br>
-                        3. 集點兌換期間終了後，未兌換點數將自動失效，不得要求任何形式之補償。<br>
-                        4. 本活動之好禮以實物為準，網頁及各式宣傳物圖片僅供參考。<br>
-                        5. 好禮數量有限，換完為止，恕不加量。兌換順序以系統時間為準。中獎人不得要求將好禮兌換其他等值商品或現金。<br>
-                        6. 未於主辦單位指定時間內提供辦理兌獎作業所需資料或未依主辦單位指示之方式辦理，視為主動放棄中獎資格。<br>
-                        7. 參加者填寫或提出之資料應屬真實、正確且未冒用或盜用他人資料，如有不實或不正確資訊導致主辦單位無法聯絡參加者，則視同放棄中獎資格且主辦單位無需任何責任；倘有損害主辦單位或其他任何第三人之行為，參加者尚應就此負一切民、刑事責任。<br>
-                        8. 參加者若以惡意之電腦程式或其他明顯違反活動公平性之方式，意圖混淆或影響活動結果者，一經主辦單位察覺，主辦單位得立即取消參加者之中獎資格，並可追回獎品。<br>
-                        9. 參加者同意所有參加者所留存或產生之任何參與活動的資料及記錄，皆以主辦單位的電腦系統與時間的紀錄為主，如有任何因電腦、網路、電話、技術或不可歸責於主辦單位之事由，而使參加者所寄出或登錄之資料有延遲、遺失、錯誤、無法辨識或毀損之情況，主辦單位不負任何法律責任，參加者亦不得因此異議。<br>
-                        10. 依中華民國稅法規定，中獎金額（價值）超過新台幣1,000元（不含）者，需繳交身分證正反面影本供報稅使用。於中獎者年度個人綜合所得稅計算時，中獎金額（價值）將計入其個人所得。中獎金額（價值）超過新台幣20,000元（不含）者，中獎者須先行繳交相當於中獎金額（價值）10%之機會中獎所得稅後方可領獎；中獎者若非中華民國國境內設籍之國人（即依法於課稅年度內，在中華民國境內居住未達183天之本國人含大陸人士及外國人），不論中獎者所得獎項之價值，需預先扣繳20%機會中獎稅金，待中獎者付清稅金後方可領獎。若中獎者不願先行繳納本項稅金，視同放棄中獎資格，且不得異議。中獎者參加本活動而需支付任何稅捐皆為中獎者之法定義務，概與主辦單位無關。依財政部國稅局「憑單無紙化」政策，主辦單位將依規定向國稅局辦理憑單申報，並免寄發憑單給中獎者，中獎者需自行於隔年5月底前完成申報。<br>
-                        11. 主辦單位保留修改活動與獎項細節的權利，無須事前通知，並有權對本活動所有事宜作出解釋或裁決。其他未盡事宜，悉依主辦單位相關規定，主辦單位並保有最終解釋權。<br>
-                        12. 參加者同意不對主辦單位及其工作人員，就本活動可能發生之任何意外或損害提出任何形式之求償。<br>
-                        13. 若主辦單位合理認為任何參與者有違反本同意書規範之虞，主辦單位得拒絕其參與本活動。</p>
-
+                        <p><strong>【活動說明】</strong><br>集點活動期間，於指定通路消費0.6L瓶裝18天生啤酒或金牌ONE啤酒任1瓶，即可參加活動。</p>
+                        <p><strong>【活動機制】</strong><br>於結帳時，輸入本次消費瓶數，經結帳人員確認後，即可獲得點數(1瓶1點)。點數可於本活動平台兌換好禮或是消耗2點以小博大參加轉盤遊戲。</p>
+                        <p><strong>【活動期間】</strong><br>2026年4月1日00:00起至2026年5月31日23:59結束。</p>
+                        <p><strong>【點數兌換期間】</strong><br>2026年4月1日00:00起至2026年6月30日23:59結束。</p>
+                        <p><strong>【注意事項】</strong><br>1. 本活動主辦單位為臺灣菸酒公司臺中營業處。<br>2. 本活動限年滿18足歲者始得參加。<br>3. 集點兌換期間終了後，未兌換點數將自動失效，不得要求任何形式之補償。<br>4. 本活動之好禮以實物為準，網頁及各式宣傳物圖片僅供參考。<br>5. 好禮數量有限，換完為止，恕不加量。兌換順序以系統時間為準。中獎人不得要求將好禮兌換其他等值商品或現金。<br>6. 未於主辦單位指定時間內提供辦理兌獎作業所需資料或未依主辦單位指示之方式辦理，視為主動放棄中獎資格。<br>7. 參加者填寫或提出之資料應屬真實、正確且未冒用或盜用他人資料，如有不實或不正確資訊導致主辦單位無法聯絡參加者，則視同放棄中獎資格且主辦單位無需任何責任；倘有損害主辦單位或其他任何第三人之行為，參加者尚應就此負一切民、刑事責任。<br>8. 參加者若以惡意之電腦程式或其他明顯違反活動公平性之方式，意圖混淆或影響活動結果者，一經主辦單位察覺，主辦單位得立即取消參加者之中獎資格，並可追回獎品。<br>9. 參加者同意所有參加者所留存或產生之任何參與活動的資料及記錄，皆以主辦單位的電腦系統與時間的紀錄為主，如有任何因電腦、網路、電話、技術或不可歸責於主辦單位之事由，而使參加者所寄出或登錄之資料有延遲、遺失、錯誤、無法辨識或毀損之情況，主辦單位不負任何法律責任，參加者亦不得因此異議。<br>10. 依中華民國稅法規定，中獎金額（價值）超過新台幣1,000元（不含）者，需繳交身分證正反面影本供報稅使用。於中獎者年度個人綜合所得稅計算時，中獎金額（價值）將計入其個人所得。中獎金額（價值）超過新台幣20,000元（不含）者，中獎者須先行繳交相當於中獎金額（價值）10%之機會中獎所得稅後方可領獎；中獎者若非中華民國國境內設籍之國人（即依法於課稅年度內，在中華民國境內居住未達183天之本國人含大陸人士及外國人），不論中獎者所得獎項之價值，需預先扣繳20%機會中獎稅金，待中獎者付清稅金後方可領獎。若中獎者不願先行繳納本項稅金，視同放棄中獎資格，且不得異議。中獎者參加本活動而需支付任何稅捐皆為中獎者之法定義務，概與主辦單位無關。依財政部國稅局「憑單無紙化」政策，主辦單位將依規定向國稅局辦理憑單申報，並免寄發憑單給中獎者，中獎者需自行於隔年5月底前完成申報。<br>11. 主辦單位保留修改活動與獎項細節的權利，無須事前通知，並有權對本活動所有事宜作出解釋或裁決。其他未盡事宜，悉依主辦單位相關規定，主辦單位並保有最終解釋權。<br>12. 參加者同意不對主辦單位及其工作人員，就本活動可能發生之任何意外或損害提出任何形式之求償。<br>13. 若主辦單位合理認為任何參與者有違反本同意書規範之虞，主辦單位得拒絕其參與本活動。</p>
                         <h5 style="color:#006633; font-weight:bold; margin-top:20px; border-bottom: 2px solid #FFC107; padding-bottom:5px;">二、個人資料</h5>
-                        <p>
-                        1. <strong>蒐集單位：</strong>主辦單位、或在法令許可之範圍或參加者同意下受本公司委託從事郵寄、運送、活動舉辦、執行研究等調查（如有）之第三人（以下簡稱執行機構）。<br>
-                        2. <strong>蒐集目的：</strong>除相關活動規則另有告知外，個人資料將用於參加者參加主辦單位活動之相關用途及為主辦單位（或執行機構）進行聯絡及領獎之確認身分、產品推廣宣傳、行銷、市場調查、研究（包括但不限於對於內容進行統計與分析，分析結果之統計數據或說明文字呈現；除供內部研究外，主辦單位可能視需要公佈統計數據及說明文字，但不涉及特定個人資料）之用等。<br>
-                        3. <strong>類別：</strong>除相關活動規則另有告知外，姓名、身分證字號、出生年月日、電話、地址、電郵信箱、LINE 帳號之內部識別碼等資訊。<br>
-                        4. <strong>利用對象：</strong>主辦單位或執行機構。除上所述外，主辦單位或執行機構絕對不會任意出售、交換、出租或以其他變相之方式，將參加者的個人資料揭露予其他團體或個人，惟發生以下情形者不在此限：經過參加者的事前同意或授權允許時、司法單位或其他主管機關經合法正式的程序要求時、為了提供參加者其他服務或優惠權益，需要與提供該服務或優惠之第三者共用參加者的資料時，主辦單位或執行機構會在活動時提供充分說明並告知，參加者可以自由選擇是否接受這項服務或優惠。<br>
-                        5. <strong>利用期間與區域：</strong>主辦單位或執行機構將持續使用參加者提供的個人資料直至參加者提出停止使用之日為止。參加者的個人資料使用區域僅限於台灣地區內使用。<br>
-                        6. <strong>個人資料保護法第三條之權利行使方式：</strong>書面寄送至主辦單位或執行機構登記地址或1081013@mail.ttl.com.tw。<br>
-                        7. 主辦單位或執行機構將在蒐集目的範圍內處理及利用參加者的個人資料；非經參加者書面同意，主辦單位或執行機構不會將個人資料用於其他用途。<br>
-                        8. 參加者可自由選擇是否提供個人資料，惟若本人選擇不提供個人資料或提供不完全時，主辦單位或執行機構將無法進行必要之處理作業。
-                        </p>
-
-                        <h5 style="color:#dc3545; font-weight:bold; margin-top:20px; text-align:center;">
-                            <i class="fas fa-exclamation-triangle"></i> 禁止酒駕，未滿18歲禁止飲酒
-                        </h5>
-
+                        <p>1. <strong>蒐集單位：</strong>主辦單位、或在法令許可之範圍或參加者同意下受本公司委託從事郵寄、運送、活動舉辦、執行研究等調查（如有）之第三人（以下簡稱執行機構）。<br>2. <strong>蒐集目的：</strong>除相關活動規則另有告知外，個人資料將用於參加者參加主辦單位活動之相關用途及為主辦單位（或執行機構）進行聯絡及領獎之確認身分、產品推廣宣傳、行銷、市場調查、研究（包括但不限於對於內容進行統計與分析，分析結果之統計數據或說明文字呈現；除供內部研究外，主辦單位可能視需要公佈統計數據及說明文字，但不涉及特定個人資料）之用等。<br>3. <strong>類別：</strong>除相關活動規則另有告知外，姓名、身分證字號、出生年月日、電話、地址、電郵信箱、LINE 帳號之內部識別碼等資訊。<br>4. <strong>利用對象：</strong>主辦單位或執行機構。除上所述外，主辦單位或執行機構絕對不會任意出售、交換、出租或以其他變相之方式，將參加者的個人資料揭露予其他團體或個人，惟發生以下情形者不在此限：經過參加者的事前同意或授權允許時、司法單位或其他主管機關經合法正式的程序要求時、為了提供參加者其他服務或優惠權益，需要與提供該服務或優惠之第三者共用參加者的資料時，主辦單位或執行機構會在活動時提供充分說明並告知，參加者可以自由選擇是否接受這項服務或優惠。<br>5. <strong>利用期間與區域：</strong>主辦單位或執行機構將持續使用參加者提供的個人資料直至參加者提出停止使用之日為止。參加者的個人資料使用區域僅限於台灣地區內使用。<br>6. <strong>個人資料保護法第三條之權利行使方式：</strong>書面寄送至主辦單位或執行機構登記地址或1081013@mail.ttl.com.tw。<br>7. 主辦單位或執行機構將在蒐集目的範圍內處理及利用參加者的個人資料；非經參加者書面同意，主辦單位或執行機構不會將個人資料用於其他用途。<br>8. 參加者可自由選擇是否提供個人資料，惟若本人選擇不提供個人資料或提供不完全時，主辦單位或執行機構將無法進行必要之處理作業。</p>
+                        <h5 style="color:#dc3545; font-weight:bold; margin-top:20px; text-align:center;"><i class="fas fa-exclamation-triangle"></i> 禁止酒駕，未滿18歲禁止飲酒</h5>
                     </div>
                 `,
-                // ▲▲▲ 您的完整條款內容結束 ▲▲▲
-                
                 confirmButtonText: '我已閱讀完畢',
                 confirmButtonColor: '#006633',
-                allowOutsideClick: false // 禁止點旁邊關閉，強迫按按鈕
+                allowOutsideClick: false
             }).then(() => {
-                // 當使用者按「我已閱讀完畢」後，重新打開註冊視窗 (形成強制迴圈)
                 showRegistrationModal(userId);
             });
-        }        // --- 以下維持原有的遊戲與功能 ---
+        }
+
         function showPrizeImage(title, imgUrl) {
             Swal.fire({
                 title: title,
@@ -464,7 +402,7 @@ function showTerms(userId) {
             }).then((result) => { if (result.isConfirmed) startSpin(); });
         }
 
-function startSpin() {
+        function startSpin() {
             if (isSpinning) return;
             isSpinning = true;
             document.getElementById('spinBtn').style.opacity = 0.5;
