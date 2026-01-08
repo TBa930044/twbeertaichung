@@ -15,11 +15,51 @@
         body { background-color: var(--bg-color); font-family: "Microsoft JhengHei", sans-serif; padding-bottom: 25vh; }
         
         .header-section {
-            background: linear-gradient(135deg, #004d26 0%, #008040 100%); color: white; padding: 25px 20px;
+            /* 修改：背景色稍微調深一點，讓氣泡更明顯 */
+            background: linear-gradient(135deg, #004d26 0%, #006633 100%); 
+            color: white; padding: 25px 20px;
             border-bottom-left-radius: 30px; border-bottom-right-radius: 30px;
-            box-shadow: 0 4px 15px rgba(0,80,0,0.25); position: relative; overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,80,0,0.25); 
+            position: relative; overflow: hidden; /* 關鍵：隱藏超出範圍的氣泡和圖片 */
         }
-        .header-bg-circle { position: absolute; top: -30px; right: -30px; width: 180px; height: 180px; background: rgba(255,255,255,0.08); border-radius: 50%; }
+        
+        /* --- 新增：啤酒氣泡動畫 --- */
+        .bubble {
+            position: absolute;
+            bottom: -20px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            animation: rise infinite ease-in;
+            z-index: 1; /* 在背景之上，內容之下 */
+        }
+        .b1 { width: 20px; height: 20px; left: 10%; animation-duration: 4s; animation-delay: 0s; }
+        .b2 { width: 10px; height: 10px; left: 20%; animation-duration: 5s; animation-delay: 1s; }
+        .b3 { width: 15px; height: 15px; left: 35%; animation-duration: 3s; animation-delay: 2s; }
+        .b4 { width: 25px; height: 25px; left: 50%; animation-duration: 6s; animation-delay: 0.5s; }
+        .b5 { width: 12px; height: 12px; left: 65%; animation-duration: 4s; animation-delay: 3s; }
+        .b6 { width: 18px; height: 18px; left: 80%; animation-duration: 5s; animation-delay: 1.5s; }
+
+        @keyframes rise {
+            0% { bottom: -20px; transform: translateX(0); opacity: 0; }
+            50% { opacity: 1; }
+            100% { bottom: 100%; transform: translateX(-10px); opacity: 0; }
+        }
+
+        /* --- 新增：右下角產品裝飾圖 --- */
+        .header-product-img {
+            position: absolute;
+            right: -10px;
+            bottom: -30px;
+            height: 160px; /* 圖片高度 */
+            width: auto;
+            transform: rotate(10deg); /* 稍微傾斜 */
+            opacity: 0.9;
+            z-index: 1;
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3));
+        }
+
+        .header-bg-circle { position: absolute; top: -30px; right: -30px; width: 180px; height: 180px; background: rgba(255,255,255,0.05); border-radius: 50%; z-index: 0; }
+        
         .user-greeting { font-size: 0.95rem; opacity: 0.9; margin-bottom: 5px; }
         .store-badge { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; backdrop-filter: blur(4px); }
         .balance-card { margin-top: 20px; text-align: center; }
@@ -146,21 +186,33 @@
 </div>
 
     <div class="header-section">
+        <div class="bubble b1"></div>
+        <div class="bubble b2"></div>
+        <div class="bubble b3"></div>
+        <div class="bubble b4"></div>
+        <div class="bubble b5"></div>
+        <div class="bubble b6"></div>
+        
         <div class="header-bg-circle"></div>
-        <div class="d-flex justify-content-between align-items-start">
-            <div>
-                <div class="user-greeting" id="userGreeting">Hi, 會員</div>
-                <div style="font-weight:bold; font-size:1.2rem;">
-                    <i class="fas fa-beer"></i> 台灣啤酒
+        
+        <img src="https://i.imgur.com/8zVz4Gj.png" class="header-product-img" alt="Taiwan Beer">
+
+        <div style="position: relative; z-index: 2;">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="user-greeting" id="userGreeting">Hi, 會員</div>
+                    <div style="font-weight:bold; font-size:1.3rem; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                        <i class="fas fa-beer me-1"></i> 台灣啤酒
+                    </div>
+                </div>
+                <div class="store-badge" id="storeDisplay">
+                    <i class="fas fa-spinner fa-spin"></i>
                 </div>
             </div>
-            <div class="store-badge" id="storeDisplay">
-                <i class="fas fa-spinner fa-spin"></i>
+            <div class="balance-card">
+                <div class="balance-number" id="headerPoints">...</div>
+                <div class="balance-label">目前持有點數</div>
             </div>
-        </div>
-        <div class="balance-card">
-            <div class="balance-number" id="headerPoints">...</div>
-            <div class="balance-label">目前持有點數</div>
         </div>
     </div>
 
@@ -485,6 +537,7 @@
                         Swal.fire({ title: '真可惜...', text: '這次沒中獎，再接再厲！', icon: 'info', confirmButtonColor: '#006633' });
                         resetWheel(targetDeg);
                     } else {
+                        // === 修改處：中獎只需填寫地址 ===
                         Swal.fire({
                             title: '🎉 恭喜中獎！',
                             html: `
