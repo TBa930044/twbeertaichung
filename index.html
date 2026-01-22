@@ -1,218 +1,658 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>(中部)台啤集點活動</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        :root { --primary-color: #006633; --accent-color: #FFC107; --bg-color: #f4f6f8; }
+        
+        body { background-color: var(--bg-color); font-family: "Microsoft JhengHei", sans-serif; padding-bottom: 25vh; }
+        
+        .header-section {
+            background: linear-gradient(135deg, #004d26 0%, #006633 100%); 
+            color: white; padding: 25px 20px;
+            border-bottom-left-radius: 30px; border-bottom-right-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0,80,0,0.25); 
+            position: relative; overflow: hidden; 
+        }
+        
+        /* --- 氣泡動畫 CSS --- */
+        .bubble {
+            position: absolute;
+            bottom: -20px;
+            background: rgba(255, 255, 255, 0.15); 
+            border-radius: 50%;
+            animation: rise infinite ease-in;
+            z-index: 1; 
+        }
+        .b1 { width: 20px; height: 20px; left: 10%; animation-duration: 4s; animation-delay: 0s; }
+        .b2 { width: 10px; height: 10px; left: 20%; animation-duration: 5s; animation-delay: 1s; }
+        .b3 { width: 15px; height: 15px; left: 35%; animation-duration: 3s; animation-delay: 2s; }
+        .b4 { width: 25px; height: 25px; left: 50%; animation-duration: 6s; animation-delay: 0.5s; }
+        .b5 { width: 12px; height: 12px; left: 65%; animation-duration: 4s; animation-delay: 3s; }
+        .b6 { width: 18px; height: 18px; left: 80%; animation-duration: 5s; animation-delay: 1.5s; }
 
-<title>(中部)台灣啤酒集點活動</title>
+        @keyframes rise {
+            0% { bottom: -20px; transform: translateX(0); opacity: 0; }
+            50% { opacity: 1; }
+            100% { bottom: 100%; transform: translateX(-10px); opacity: 0; }
+        }
 
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        /* --- 產品圖 CSS --- */
+        .header-product-img {
+            position: absolute;
+            right: -10px;
+            bottom: -30px;
+            height: 160px; 
+            width: auto;
+            transform: rotate(10deg); 
+            opacity: 0.95;
+            z-index: 1;
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3)); 
+        }
 
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        .header-bg-circle { position: absolute; top: -30px; right: -30px; width: 180px; height: 180px; background: rgba(255,255,255,0.05); border-radius: 50%; z-index: 0; }
+        
+        .user-greeting { font-size: 0.95rem; opacity: 0.9; margin-bottom: 5px; }
+        .store-badge { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; backdrop-filter: blur(4px); }
+        .balance-card { margin-top: 20px; text-align: center; }
+        .balance-number { font-size: 3.8rem; font-weight: 800; color: var(--accent-color); text-shadow: 0 2px 5px rgba(0,0,0,0.2); line-height: 1; }
+        .balance-label { font-size: 0.9rem; opacity: 0.8; letter-spacing: 1px; }
 
-<style>
-/* =========================
-   台啤品牌主視覺設定
-========================= */
-:root{
-  --tb-green:#004d26;
-  --tb-green-dark:#00361b;
-  --tb-gold:#d4af37;
-  --tb-bg:#f3f5f4;
-  --card-radius:18px;
-}
+        .custom-card { background: white; border: none; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); margin-bottom: 15px; padding: 25px 20px; }
+        
+        /* 轉盤樣式 */
+        .wheel-container { position: relative; width: 300px; height: 300px; margin: 0 auto 20px auto; }
+        .wheel {
+            width: 100%; height: 100%; border-radius: 50%; border: 10px solid #004d26;
+            position: relative; overflow: hidden; transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            background: conic-gradient(#FFC107 0% 16.66%, #ffffff 16.66% 33.33%, #FFC107 33.33% 50%, #ffffff 50% 66.66%, #FFC107 66.66% 83.33%, #ffffff 83.33% 100%);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        @keyframes spin-loading { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .wheel-loading { animation: spin-loading 0.6s linear infinite; }
+        .wheel-text { position: absolute; top: 50%; left: 50%; width: 100%; height: 100%; transform-origin: 0 0; text-align: center; padding-top: 15px; font-weight: bold; font-size: 0.9rem; color: #333; }
+        .txt-1 { transform: rotate(30deg) translateY(-140px) translateX(-50%); } 
+        .txt-2 { transform: rotate(90deg) translateY(-140px) translateX(-50%); } 
+        .txt-3 { transform: rotate(150deg) translateY(-140px) translateX(-50%); } 
+        .txt-4 { transform: rotate(210deg) translateY(-140px) translateX(-50%); } 
+        .txt-5 { transform: rotate(270deg) translateY(-140px) translateX(-50%); } 
+        .txt-6 { transform: rotate(330deg) translateY(-140px) translateX(-50%); } 
+        .wheel-pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #dc3545; z-index: 10; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3)); }
+        .wheel-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70px; height: 70px; background: white; border-radius: 50%; border: 4px solid #004d26; color: #004d26; font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; z-index: 5; box-shadow: 0 0 10px rgba(0,0,0,0.2); cursor: pointer; }
+        .wheel-btn:active { transform: translate(-50%, -50%) scale(0.95); }
 
-/* =========================
-   基本版型
-========================= */
-body{
-  background:linear-gradient(180deg,#f7f9f8,#eef2f0);
-  font-family:"Microsoft JhengHei",sans-serif;
-  padding-bottom:26vh;
-  color:#333;
-}
+        /* 導覽列樣式 */
+        .bottom-nav { 
+            position: fixed; 
+            bottom: 15vh; 
+            left: 50%; transform: translateX(-50%); 
+            width: 95%; max-width: 400px; 
+            background: white; border-radius: 50px; 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15); 
+            display: flex; 
+            padding: 8px 5px; 
+            z-index: 999; 
+            pointer-events: none; 
+        }
+        
+        .nav-btn { 
+            flex: 1; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; padding: 8px 0; border-radius: 40px; 
+            color: #aaa; font-weight: bold; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+            cursor: pointer; font-size: 0.75rem; line-height: 1.2;
+            pointer-events: auto; 
+        }
+        
+        .nav-btn i { font-size: 1.4rem; margin-bottom: 4px; }
+        .nav-btn.active { background-color: var(--primary-color); color: white; box-shadow: 0 4px 12px rgba(0,102,51,0.3); }
 
-/* =========================
-   Header（品牌升級重點）
-========================= */
-.header-section{
-  background:
-    linear-gradient(135deg,rgba(0,0,0,0.15),rgba(0,0,0,0.35)),
-    linear-gradient(135deg,#005c30,#00361b);
-  color:#fff;
-  padding:26px 22px 32px;
-  border-bottom-left-radius:32px;
-  border-bottom-right-radius:32px;
-  box-shadow:0 10px 30px rgba(0,0,0,.25);
-  position:relative;
-  overflow:hidden;
-}
+        /* 警語區塊 */
+        .warning-footer {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: transparent;
+            z-index: 9999;
+            display: flex; justify-content: center; align-items: flex-end;
+            padding: 0;
+            box-shadow: none; 
+            transform: scale(1.05);
+            transform-origin: bottom center;
+            pointer-events: none; 
+        }
+        
+        .warning-img {
+            width: 100%; height: auto; display: block;    
+        }
 
-.header-bg-circle{
-  position:absolute;
-  right:-40px;
-  top:-40px;
-  width:220px;
-  height:220px;
-  background:radial-gradient(circle,rgba(255,255,255,.15),transparent 70%);
-  border-radius:50%;
-}
-
-.user-greeting{
-  font-size:.9rem;
-  opacity:.85;
-}
-
-.store-badge{
-  background:rgba(255,255,255,.18);
-  padding:6px 12px;
-  border-radius:20px;
-  font-size:.75rem;
-  backdrop-filter:blur(6px);
-}
-
-.balance-card{
-  margin-top:18px;
-  text-align:center;
-}
-
-.balance-number{
-  font-size:4rem;
-  font-weight:900;
-  color:var(--tb-gold);
-  letter-spacing:1px;
-  text-shadow:0 3px 8px rgba(0,0,0,.35);
-}
-
-.balance-label{
-  font-size:.85rem;
-  letter-spacing:2px;
-  opacity:.85;
-}
-
-/* =========================
-   卡片升級
-========================= */
-.custom-card{
-  background:#fff;
-  border-radius:var(--card-radius);
-  padding:26px 22px;
-  box-shadow:
-    0 6px 20px rgba(0,0,0,.06),
-    inset 0 1px 0 rgba(255,255,255,.6);
-  margin-bottom:18px;
-}
-
-/* =========================
-   表單 / 按鈕
-========================= */
-.form-control-custom{
-  border-radius:14px;
-  border:2px solid #e3e6e4;
-  padding:14px;
-  font-size:1.05rem;
-  text-align:center;
-  background:#fafafa;
-}
-
-.form-control-custom:focus{
-  border-color:var(--tb-green);
-  box-shadow:0 0 0 4px rgba(0,77,38,.12);
-  background:#fff;
-}
-
-.btn-action{
-  background:linear-gradient(135deg,#006633,#004d26);
-  color:#fff;
-  border:none;
-  border-radius:14px;
-  padding:14px;
-  font-weight:700;
-  font-size:1.05rem;
-  box-shadow:0 6px 14px rgba(0,77,38,.35);
-}
-
-.btn-action:disabled{
-  background:#bbb;
-  box-shadow:none;
-}
-
-/* =========================
-   Bottom Nav 升級
-========================= */
-.bottom-nav{
-  position:fixed;
-  bottom:15vh;
-  left:50%;
-  transform:translateX(-50%);
-  width:94%;
-  max-width:420px;
-  background:#fff;
-  border-radius:60px;
-  padding:10px 6px;
-  display:flex;
-  box-shadow:0 12px 30px rgba(0,0,0,.2);
-  z-index:999;
-}
-
-.nav-btn{
-  flex:1;
-  text-align:center;
-  color:#999;
-  font-size:.75rem;
-  font-weight:700;
-  border-radius:40px;
-  padding:8px 0;
-  transition:.3s;
-}
-
-.nav-btn i{
-  font-size:1.35rem;
-  margin-bottom:4px;
-}
-
-.nav-btn.active{
-  background:linear-gradient(135deg,#006633,#004d26);
-  color:#fff;
-  box-shadow:0 6px 16px rgba(0,77,38,.45);
-}
-
-/* =========================
-   警語圖
-========================= */
-.warning-footer{
-  position:fixed;
-  bottom:0;
-  width:100%;
-  pointer-events:none;
-}
-
-.warning-img{
-  width:100%;
-  display:block;
-}
-
-/* =========================
-   動畫
-========================= */
-.fade-in{
-  animation:fadeIn .4s ease-out;
-}
-
-@keyframes fadeIn{
-  from{opacity:0;transform:translateY(10px);}
-  to{opacity:1;transform:none;}
-}
-</style>
+        .form-control-custom { border: 2px solid #eee; border-radius: 12px; padding: 14px; font-size: 1.1rem; text-align: center; background-color: #fafafa; }
+        .form-control-custom:focus { border-color: var(--primary-color); background-color: #fff; box-shadow: 0 0 0 3px rgba(0,102,51,0.1); }
+        .btn-action { width: 100%; background: var(--primary-color); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; font-size: 1.1rem; margin-top: 15px; box-shadow: 0 4px 10px rgba(0,102,51,0.3); transition: background-color 0.3s; }
+        .btn-action:disabled { background-color: #ccc; cursor: not-allowed; }
+        .btn-redeem { width: 100%; padding: 6px; font-size: 0.9rem; border-radius: 8px; }
+        
+        .d-none { display: none; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* 註冊表單專用樣式 */
+        .reg-label { text-align: left; width: 100%; margin-top: 10px; font-weight: bold; color: #333; }
+        .reg-input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; margin-top: 5px; background: #f9f9f9; }
+        .reg-check-group { display: flex; align-items: start; margin-top: 15px; text-align: left; font-size: 0.9rem; }
+        .reg-check-group input { margin-top: 4px; margin-right: 8px; transform: scale(1.2); }
+        .reg-link { color: #006633; text-decoration: underline; cursor: pointer; }
+        
+        .reward-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .reward-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 3px 8px rgba(0,0,0,0.06); display: flex; flex-direction: column; transition: transform 0.2s; }
+        .reward-card:active { transform: scale(0.98); }
+        .reward-img { width: 100%; height: 140px; object-fit: cover; background-color: #f0f0f0; }
+        .reward-body { padding: 12px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .reward-title { font-size: 0.95rem; font-weight: bold; color: #333; margin-bottom: 5px; line-height: 1.3; height: 2.6em; overflow: hidden; }
+        .reward-meta { font-size: 0.8rem; color: #666; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .store-select-container { background-color: #fff; padding: 15px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid var(--primary-color); }
+        .form-select-custom { border: 2px solid #eee; border-radius: 8px; padding: 10px; font-size: 1rem; width: 100%; background-color: #fafafa; }
+        
+        /* 連結 Z-Index 設定 */
+        .prize-link { 
+            cursor: pointer; 
+            color: #0d6efd; 
+            transition: all 0.2s; 
+            text-decoration: none; 
+            display: inline-block; 
+            padding: 8px; 
+            position: relative; 
+            z-index: 100;
+        }
+        .prize-link:active {
+            color: #004d26;
+            background-color: rgba(0,0,0,0.05);
+            border-radius: 5px;
+        }
+    </style>
 </head>
-
 <body>
 
-<!-- ⚠️ 以下 HTML 與 JS 完整沿用你原本的（未改功能） -->
+<div class="warning-footer">
+    <img src="https://www.mof.gov.tw/getCKEditorImage?localFileName=/upload/content/image/24459517be4749a48857e6f6acb375eb/1737614098799_5132689576360529.png&portalUuid=89407691a61e484a84a83c78c693fd78" 
+         alt="禁止酒駕" 
+         class="warning-img">
+</div>
 
-<!-- 你的 body 內容、script 原封不動貼在這裡即可 -->
+    <div class="header-section">
+        <div class="bubble b1"></div>
+        <div class="bubble b2"></div>
+        <div class="bubble b3"></div>
+        <div class="bubble b4"></div>
+        <div class="bubble b5"></div>
+        <div class="bubble b6"></div>
+        
+        <div class="header-bg-circle"></div>
+        
+        <img src="https://i.imgur.com/8zVz4Gj.png" class="header-product-img" alt="Taiwan Beer">
 
+        <div style="position: relative; z-index: 2;">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="user-greeting" id="userGreeting">Hi, 會員</div>
+                    <div style="font-weight:bold; font-size:1.3rem; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                        <i class="fas fa-beer me-1"></i> 台灣啤酒
+                    </div>
+                </div>
+                <div class="store-badge" id="storeDisplay">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
+            </div>
+            <div class="balance-card">
+                <div class="balance-number" id="headerPoints">...</div>
+                <div class="balance-label">目前持有點數</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-3">
+        <div id="page-earn" class="fade-in">
+            <div class="custom-card">
+                <h5 class="fw-bold mb-4" style="color:#333;"><i class="fas fa-qrcode me-2 text-success"></i>掃碼集點</h5>
+                <div class="mb-3">
+                    <label class="text-muted small mb-2 fw-bold">消費瓶數 / 金額</label>
+                    <input type="number" id="inputPoints" class="form-control form-control-custom" placeholder="請輸入本次消費台啤瓶數" min="1">
+                </div>
+                <div class="mb-3">
+                    <label class="text-muted small mb-2 fw-bold">請店員輸入核銷碼</label>
+                    <input type="password" id="inputPinEarn" class="form-control form-control-custom" placeholder="PIN Code" maxlength="4">
+                </div>
+                <button id="btnEarn" class="btn-action" onclick="doEarn()" disabled>連線中...</button>
+            </div>
+            <div class="custom-card py-3 text-center" style="background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9;">
+                <small><i class="fas fa-info-circle me-1"></i> 請向店員出示本畫面進行集點</small>
+            </div>
+        </div>
+
+        <div id="page-redeem" class="d-none fade-in">
+            <h5 class="fw-bold ps-2 mb-3 border-start border-4 border-success"> &nbsp;好禮兌換專區</h5>
+            <div id="storeSelectArea" class="store-select-container d-none">
+                <label class="text-muted small mb-1 fw-bold"><i class="fas fa-store-alt me-1"></i> 查詢各店庫存</label>
+                <select id="storeSelect" class="form-select form-select-custom" onchange="loadRewards()">
+                    <option value="" disabled selected>載入店家清單中...</option>
+                </select>
+            </div>
+            <div id="rewardList" class="reward-grid">
+                <div class="text-center w-100 py-4" style="grid-column: span 2;"><div class="spinner-border text-success" role="status"></div></div>
+            </div>
+            <div style="height: 100px;"></div> 
+        </div>
+
+        <div id="page-game" class="d-none fade-in">
+            <h5 class="fw-bold ps-2 mb-3 border-start border-4 border-success"> &nbsp;幸運大轉盤</h5>
+            <div class="custom-card text-center" style="background: #e8f5e9;">
+                <p class="mb-2 fw-bold" style="color:#004d26;">以小博大！每次只需 <span class="text-danger">2</span> 點</p>
+                <div class="wheel-container">
+                    <div class="wheel-pointer"></div>
+                    <div class="wheel" id="wheel">
+                        <div class="wheel-text txt-1">拉桿<br>冰桶</div>
+                        <div class="wheel-text txt-2">銘謝<br>惠顧</div>
+                        <div class="wheel-text txt-3">20吋<br>行李箱</div>
+                        <div class="wheel-text txt-4">銘謝<br>惠顧</div>
+                        <div class="wheel-text txt-5">銘謝<br>惠顧</div>
+                        <div class="wheel-text txt-6">銘謝<br>惠顧</div>
+                    </div>
+                    <div class="wheel-btn" onclick="doPlayGame()" id="spinBtn">GO</div>
+                </div>
+                
+                <div class="mt-3">
+                    <div class="prize-link" onclick="showPrizeImage('拉桿冰桶', 'https://github.com/TBa930044/twbeertaichung/blob/main/ice.png?raw=true')">
+                        <i class="fas fa-gift"></i> 大獎：拉桿冰桶 (極稀有) <i class="fas fa-search-plus small"></i>
+                    </div>
+                    <br>
+                    <div class="prize-link" onclick="showPrizeImage('20吋空軍藍行李箱', 'https://eshop.ttl.com.tw/uploadphoto/images/thumbs/0000487_taiwan-beer-x-eminent-20_600.jpeg')">
+                        <i class="fas fa-suitcase"></i> 二獎：20吋空軍藍行李箱 <i class="fas fa-search-plus small"></i>
+                    </div>
+                </div>
+            </div>
+            <div style="height: 100px;"></div> 
+        </div>
+
+        <div id="page-history" class="d-none fade-in">
+            <h5 class="fw-bold ps-2 mb-3 border-start border-4 border-success"> &nbsp;近期交易紀錄</h5>
+            <div id="historyList" class="history-list">
+                <div class="text-center w-100 py-4"><div class="spinner-border text-success" role="status"></div></div>
+            </div>
+            <div style="height: 100px;"></div> 
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-btn active" id="tab-earn" onclick="switchTab('earn')">
+            <i class="fas fa-camera"></i>
+            <span>集點</span>
+        </div>
+        <div class="nav-btn" id="tab-redeem" onclick="switchTab('redeem')">
+            <i class="fas fa-gift"></i>
+            <span>兌換</span>
+        </div>
+        <div class="nav-btn" id="tab-game" onclick="switchTab('game')">
+            <i class="fas fa-dharmachakra"></i>
+            <span>遊戲</span>
+        </div>
+        <div class="nav-btn" id="tab-history" onclick="switchTab('history')">
+            <i class="fas fa-history"></i>
+            <span>紀錄</span>
+        </div>
+    </div>
+
+    <script>
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwYI4M2RuswYcxoMy98Gr8WLinypnvZwrYAwtHsD84rX0unB26FKKx4u0dcuB9Ojo62/exec"; 
+        const MY_LIFF_ID = "2008765350-4KBTGWMz"; 
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        let storeParam = urlParams.get('store');
+        if (!storeParam && window.location.hash) {
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            storeParam = hashParams.get('store');
+        }
+        if (storeParam) { localStorage.setItem('savedStoreId', storeParam); } 
+        else { const saved = localStorage.getItem('savedStoreId'); if (saved) storeParam = saved; }
+
+        const currentStoreId = storeParam || 'store01'; 
+        let currentUserProfile = null;
+        const isViewOnly = (currentStoreId === 'store00');
+
+        window.onload = function() {
+            document.getElementById('headerPoints').innerText = "載入中..."; 
+            document.getElementById('headerPoints').style.fontSize = "1.5rem";
+
+            if (isViewOnly) {
+                document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-search me-1"></i> 集點查詢`;
+                document.getElementById('inputPoints').disabled = true;
+                document.getElementById('inputPoints').placeholder = "僅供查詢";
+                document.getElementById('inputPinEarn').disabled = true;
+                document.getElementById('inputPinEarn').placeholder = "請至門市集點";
+                const btn = document.getElementById('btnEarn');
+                btn.disabled = true;
+                btn.innerText = "此模式僅供查詢餘額";
+                document.getElementById('storeSelectArea').classList.remove('d-none');
+                loadStoreList(); 
+            } else {
+                document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-map-marker-alt me-1"></i> ${currentStoreId}`;
+            }
+
+            liff.init({ liffId: MY_LIFF_ID }).then(() => {
+                if (!liff.isLoggedIn()) {
+                    let loginRedirect = window.location.href;
+                    if(currentStoreId && !window.location.search.includes('store')) {
+                         loginRedirect = loginRedirect.split('?')[0] + '?store=' + currentStoreId;
+                    }
+                    liff.login({ redirectUri: loginRedirect });
+                } else {
+                    liff.getProfile().then(profile => { 
+                        currentUserProfile = profile;
+                        if(profile.displayName) document.getElementById('userGreeting').innerText = `Hi, ${profile.displayName}`;
+                        if(!isViewOnly) {
+                            const btn = document.getElementById('btnEarn');
+                            btn.disabled = false;
+                            btn.innerText = "確認集點";
+                        }
+                        checkBalanceAndRegister(profile.userId, profile.displayName);
+                    });
+                }
+            }).catch(console.error);
+        };
+
+        function checkBalanceAndRegister(userId, nickName) {
+            fetch(GAS_API_URL, { 
+                method: "POST", headers: { "Content-Type": "text/plain" }, 
+                body: JSON.stringify({ action: 'checkBalance', userId: userId }) 
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('headerPoints').style.fontSize = "3.8rem";
+                if(data.userBalance !== undefined) updateBalanceUI(data.userBalance);
+                
+                // ★ DEMO專用：強制略過註冊檢查，讓鋪貨商直接進首頁
+                // if (data.isRegistered === false) {
+                //     showRegistrationModal(userId, nickName);
+                // }
+            })
+            .catch(err => { document.getElementById('headerPoints').innerText = "---"; });
+        }
+
+        function showRegistrationModal(userId, nickName) {
+            Swal.fire({
+                title: '第一次掃描前<br>請先填寫基本資料',
+                html: `
+                    <div style="font-size:0.9rem; color:#666; margin-bottom:15px;">以作為後續贈品寄送使用</div>
+                    <label class="reg-label">真實姓名</label>
+                    <input id="reg-name" class="reg-input" placeholder="王小明">
+                    <label class="reg-label">連絡電話</label>
+                    <input id="reg-phone" class="reg-input" type="tel" placeholder="0912345678">
+                    <label class="reg-label">出生日期</label>
+                    <input id="reg-dob" class="reg-input" type="date">
+                    <div class="reg-check-group">
+                        <input type="checkbox" id="check-age">
+                        <label for="check-age">我是設籍且居住於中華民國之年滿18足歲本國公民</label>
+                    </div>
+                    <div class="reg-check-group">
+                        <input type="checkbox" id="check-terms">
+                        <label for="check-terms">我已詳閱了解並同意遵守本活動所公布的 <span class="reg-link" onclick="showTerms('${userId}')">活動辦法暨個人資料同意聲明</span></label>
+                    </div>
+                `,
+                confirmButtonText: '確認送出',
+                confirmButtonColor: '#006633',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                width: '90%',
+                preConfirm: () => {
+                    const name = document.getElementById('reg-name').value;
+                    const phone = document.getElementById('reg-phone').value;
+                    const dob = document.getElementById('reg-dob').value;
+                    const checkAge = document.getElementById('check-age').checked;
+                    const checkTerms = document.getElementById('check-terms').checked;
+                    if (!name || !phone || !dob) { Swal.showValidationMessage('請填寫所有欄位'); return false; }
+                    if (!checkAge) { Swal.showValidationMessage('必須年滿18歲才能參加'); return false; }
+                    if (!checkTerms) { Swal.showValidationMessage('請同意活動辦法'); return false; }
+                    const today = new Date();
+                    const birthDate = new Date(dob);
+                    let age = today.getFullYear() - birthDate.getFullYear();
+                    const m = today.getMonth() - birthDate.getMonth();
+                    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; }
+                    if (age < 18) { Swal.showValidationMessage('抱歉，您未滿18歲，無法參加本活動。'); return false; }
+                    
+                    return { name: name, phone: phone, dob: dob, nickName: nickName };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    registerUser(userId, result.value);
+                }
+            });
+        }
+
+        function registerUser(userId, data) {
+            Swal.fire({ title: '資料建立中...', didOpen: () => { Swal.showLoading() } });
+            var finalNickName = data.nickName || (currentUserProfile ? currentUserProfile.displayName : "未知暱稱");
+            fetch(GAS_API_URL, { 
+                method: "POST", headers: { "Content-Type": "text/plain" }, 
+                body: JSON.stringify({ 
+                    action: 'registerUser', 
+                    userId: userId, 
+                    displayName: finalNickName, 
+                    name: data.name, 
+                    phone: data.phone, 
+                    dob: data.dob 
+                }) 
+            })
+            .then(res => res.json())
+            .then(resData => {
+                if (resData.status === 'success') {
+                    Swal.fire({ icon: 'success', title: '註冊成功', text: '歡迎參加活動！', confirmButtonColor: '#006633' });
+                    checkBalanceAndRegister(userId, finalNickName);
+                } else {
+                    Swal.fire('錯誤', '註冊失敗，請重試', 'error').then(() => showRegistrationModal(userId, finalNickName));
+                }
+            });
+        }
+
+        function showTerms(userId) {
+            Swal.fire({
+                title: '活動辦法暨個資聲明',
+                html: `
+                    <div style="text-align:left; max-height:60vh; overflow-y:auto; font-size:0.9rem; line-height:1.6; padding-right:5px;">
+                        <h5 style="color:#006633; font-weight:bold; border-bottom: 2px solid #FFC107; padding-bottom:5px;">一、活動辦法</h5>
+                        <p>非常感謝您參與(中部)台灣啤酒集點活動(以下簡稱本活動)。在暢飲台灣啤酒時，記得理性飲酒，我們重視您的身心健康與安全，希望台灣啤酒能持續陪伴您人生中各種時刻，並享受本次活動給您的體驗。</p>
+                        <p><strong>【活動說明】</strong><br>集點活動期間，於指定通路消費0.6L瓶裝18天生啤酒或金牌ONE啤酒任1瓶，即可參加活動。</p>
+                        <p><strong>【活動機制】</strong><br>於結帳時，輸入本次消費瓶數，經結帳人員確認後，即可獲得點數(1瓶1點)。點數可於本活動平台兌換好禮或是消耗2點以小博大參加轉盤遊戲。</p>
+                        <p><strong>【活動期間】</strong><br>2026年4月1日00:00起至2026年5月31日23:59結束。</p>
+                        <p><strong>【點數兌換期間】</strong><br>2026年4月1日00:00起至2026年6月30日23:59結束。</p>
+                        <p><strong>【注意事項】</strong><br>1. 本活動主辦單位為臺灣菸酒公司臺中營業處。<br>2. 本活動限年滿18足歲者始得參加。<br>3. 集點兌換期間終了後，未兌換點數將自動失效，不得要求任何形式之補償。<br>4. 本活動之好禮以實物為準，網頁及各式宣傳物圖片僅供參考。<br>5. 好禮數量有限，換完為止，恕不加量。兌換順序以系統時間為準。中獎人不得要求將好禮兌換其他等值商品或現金。<br>6. 未於主辦單位指定時間內提供辦理兌獎作業所需資料或未依主辦單位指示之方式辦理，視為主動放棄中獎資格。<br>7. 參加者填寫或提出之資料應屬真實、正確且未冒用或盜用他人資料，如有不實或不正確資訊導致主辦單位無法聯絡參加者，則視同放棄中獎資格且主辦單位無需任何責任；倘有損害主辦單位或其他任何第三人之行為，參加者尚應就此負一切民、刑事責任。<br>8. 參加者若以惡意之電腦程式或其他明顯違反活動公平性之方式，意圖混淆或影響活動結果者，一經主辦單位察覺，主辦單位得立即取消參加者之中獎資格，並可追回獎品。<br>9. 參加者同意所有參加者所留存或產生之任何參與活動的資料及記錄，皆以主辦單位的電腦系統與時間的紀錄為主，如有任何因電腦、網路、電話、技術或不可歸責於主辦單位之事由，而使參加者所寄出或登錄之資料有延遲、遺失、錯誤、無法辨識或毀損之情況，主辦單位不負任何法律責任，參加者亦不得因此異議。<br>10. 依中華民國稅法規定，中獎金額（價值）超過新台幣1,000元（不含）者，需繳交身分證正反面影本供報稅使用。於中獎者年度個人綜合所得稅計算時，中獎金額（價值）將計入其個人所得。中獎金額（價值）超過新台幣20,000元（不含）者，中獎者須先行繳交相當於中獎金額（價值）10%之機會中獎所得稅後方可領獎；中獎者若非中華民國國境內設籍之國人（即依法於課稅年度內，在中華民國境內居住未達183天之本國人含大陸人士及外國人），不論中獎者所得獎項之價值，需預先扣繳20%機會中獎稅金，待中獎者付清稅金後方可領獎。若中獎者不願先行繳納本項稅金，視同放棄中獎資格，且不得異議。中獎者參加本活動而需支付任何稅捐皆為中獎者之法定義務，概與主辦單位無關。依財政部國稅局「憑單無紙化」政策，主辦單位將依規定向國稅局辦理憑單申報，並免寄發憑單給中獎者，中獎者需自行於隔年5月底前完成申報。<br>11. 主辦單位保留修改活動與獎項細節的權利，無須事前通知，並有權對本活動所有事宜作出解釋或裁決。其他未盡事宜，悉依主辦單位相關規定，主辦單位並保有最終解釋權。<br>12. 參加者同意不對主辦單位及其工作人員，就本活動可能發生之任何意外或損害提出任何形式之求償。<br>13. 若主辦單位合理認為任何參與者有違反本同意書規範之虞，主辦單位得拒絕其參與本活動。</p>
+                        <h5 style="color:#006633; font-weight:bold; margin-top:20px; border-bottom: 2px solid #FFC107; padding-bottom:5px;">二、個人資料</h5>
+                        <p>1. <strong>蒐集單位：</strong>主辦單位、或在法令許可之範圍或參加者同意下受本公司委託從事郵寄、運送、活動舉辦、執行研究等調查（如有）之第三人（以下簡稱執行機構）。<br>2. <strong>蒐集目的：</strong>除相關活動規則另有告知外，個人資料將用於參加者參加主辦單位活動之相關用途及為主辦單位（或執行機構）進行聯絡及領獎之確認身分、產品推廣宣傳、行銷、市場調查、研究（包括但不限於對於內容進行統計與分析，分析結果之統計數據或說明文字呈現；除供內部研究外，主辦單位可能視需要公佈統計數據及說明文字，但不涉及特定個人資料）之用等。<br>3. <strong>類別：</strong>除相關活動規則另有告知外，姓名、身分證字號、出生年月日、電話、地址、電郵信箱、LINE 帳號之內部識別碼等資訊。<br>4. <strong>利用對象：</strong>主辦單位或執行機構。除上所述外，主辦單位或執行機構絕對不會任意出售、交換、出租或以其他變相之方式，將參加者的個人資料揭露予其他團體或個人，惟發生以下情形者不在此限：經過參加者的事前同意或授權允許時、司法單位或其他主管機關經合法正式的程序要求時、為了提供參加者其他服務或優惠權益，需要與提供該服務或優惠之第三者共用參加者的資料時，主辦單位或執行機構會在活動時提供充分說明並告知，參加者可以自由選擇是否接受這項服務或優惠。<br>5. <strong>利用期間與區域：</strong>主辦單位或執行機構將持續使用參加者提供的個人資料直至參加者提出停止使用之日為止。參加者的個人資料使用區域僅限於台灣地區內使用。<br>6. <strong>個人資料保護法第三條之權利行使方式：</strong>書面寄送至主辦單位或執行機構登記地址或1081013@mail.ttl.com.tw。<br>7. 主辦單位或執行機構將在蒐集目的範圍內處理及利用參加者的個人資料；非經參加者書面同意，主辦單位或執行機構不會將個人資料用於其他用途。<br>8. 參加者可自由選擇是否提供個人資料，惟若本人選擇不提供個人資料或提供不完全時，主辦單位或執行機構將無法進行必要之處理作業。</p>
+                        <h5 style="color:#dc3545; font-weight:bold; margin-top:20px; text-align:center;"><i class="fas fa-exclamation-triangle"></i> 禁止酒駕，未滿18歲禁止飲酒</h5>
+                    </div>
+                `,
+                confirmButtonText: '我已閱讀完畢',
+                confirmButtonColor: '#006633',
+                allowOutsideClick: false
+            }).then(() => {
+                showRegistrationModal(userId, nickName);
+            });
+        }
+
+        function showPrizeImage(title, imgUrl) {
+            Swal.fire({
+                title: title,
+                html: `<div class="mb-3"><button onclick="Swal.close()" class="btn btn-success w-100 fw-bold" style="background-color: #006633; border-color: #006633; padding: 12px; font-size: 1.1rem;"><i class="fas fa-times-circle"></i> 關閉圖片</button></div><img src="${imgUrl}" style="width:100%; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1);">`,
+                showConfirmButton: false, showCloseButton: false, allowOutsideClick: true, customClass: { popup: 'swal-wide' }
+            });
+        }
+
+        let isSpinning = false;
+        function doPlayGame() {
+            if (isSpinning) return;
+            if (!currentUserProfile) return;
+            Swal.fire({
+                title: '幸運大轉盤', text: "確定要扣除 2 點進行抽獎嗎？", icon: 'question', showCancelButton: true, confirmButtonText: '開始轉動！', cancelButtonText: '等等', confirmButtonColor: '#006633'
+            }).then((result) => { if (result.isConfirmed) startSpin(); });
+        }
+
+        function startSpin() {
+            if (isSpinning) return;
+            isSpinning = true;
+            document.getElementById('spinBtn').style.opacity = 0.5;
+            
+            const wheel = document.getElementById('wheel');
+            wheel.style.transition = 'none';
+            wheel.classList.add('wheel-loading');
+
+            fetch(GAS_API_URL, { 
+                method: "POST", headers: { "Content-Type": "text/plain" }, 
+                body: JSON.stringify({ action: 'playGame', userId: currentUserProfile.userId, displayName: currentUserProfile.displayName, storeId: currentStoreId }) 
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status !== 'success') {
+                    wheel.classList.remove('wheel-loading');
+                    Swal.fire('錯誤', data.message, 'error');
+                    isSpinning = false;
+                    document.getElementById('spinBtn').style.opacity = 1;
+                    return;
+                }
+                
+                wheel.classList.remove('wheel-loading');
+                const targetDeg = (data.targetIndex * 60) + 30; 
+                const finalRotate = 1800 + (360 - targetDeg); 
+
+                void wheel.offsetWidth; 
+
+                wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
+                wheel.style.transform = `rotate(${finalRotate}deg)`;
+
+                setTimeout(() => {
+                    updateBalanceUI(data.newBalance);
+                    
+                    if(data.prize === "銘謝惠顧") {
+                        Swal.fire({ title: '真可惜...', text: '這次沒中獎，再接再厲！', icon: 'info', confirmButtonColor: '#006633' });
+                        resetWheel(targetDeg);
+                    } else {
+                        // === 修改處：中獎只需填寫地址 ===
+                        Swal.fire({
+                            title: '🎉 恭喜中獎！',
+                            html: `
+                                <p>您獲得了：<b style="font-size:1.2rem; color:#d63384">${data.prize}</b></p>
+                                <p class="small text-muted mb-3">系統已帶入您的基本資料，請補充<b>收件地址</b>以利寄送：</p>
+                                <input id="swal-addr" class="swal2-input" placeholder="請輸入完整收件地址 (含郵遞區號)">
+                            `,
+                            icon: 'success',
+                            confirmButtonText: '確認送出',
+                            confirmButtonColor: '#006633',
+                            allowOutsideClick: false,
+                            preConfirm: () => {
+                                const addr = document.getElementById('swal-addr').value;
+                                if (!addr) {
+                                    Swal.showValidationMessage('請填寫收件地址才能領獎喔！');
+                                    return false;
+                                }
+                                return { addr: addr };
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                const infoStr = `收件地址: ${result.value.addr}`;
+                                submitWinnerInfo(data.prize, infoStr);
+                            }
+                            resetWheel(targetDeg);
+                        });
+                        // === 修改結束 ===
+                    }
+                }, 4000);
+
+            })
+            .catch(err => {
+                wheel.classList.remove('wheel-loading');
+                isSpinning = false;
+                document.getElementById('spinBtn').style.opacity = 1;
+                Swal.fire('錯誤', '連線失敗', 'error');
+            });
+        }
+
+        function submitWinnerInfo(prizeName, infoString) {
+            Swal.fire({ title: '資料傳送中...', didOpen: () => { Swal.showLoading() } });
+            fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: 'submitWinnerInfo', userId: currentUserProfile.userId, prize: prizeName, info: infoString }) })
+            .then(res => res.json()).then(data => { Swal.fire({ icon: 'success', title: '資料已送出', text: '我們將盡快為您安排寄送！', confirmButtonColor: '#006633' }); });
+        }
+
+        function resetWheel(targetDeg) {
+            const wheel = document.getElementById('wheel'); isSpinning = false; document.getElementById('spinBtn').style.opacity = 1;
+            setTimeout(() => { wheel.style.transition = 'none'; wheel.style.transform = `rotate(${360 - targetDeg}deg)`; setTimeout(() => { wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)'; }, 500); }, 500);
+        }
+
+        function loadStoreList() {
+            const select = document.getElementById('storeSelect');
+            fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: 'getStoreList' }) })
+            .then(res => res.json()).then(data => { if(data.status === 'success') { select.innerHTML = '<option value="" disabled selected>請選擇欲查詢之店家...</option>'; data.stores.forEach(store => { const option = document.createElement('option'); option.value = store.id; option.text = store.name; select.appendChild(option); }); } }).catch(console.error);
+        }
+
+        function doEarn() {
+             if (!currentUserProfile || !currentUserProfile.userId) { Swal.fire({ icon: 'warning', title: '系統連線中', text: '請稍等...', timer: 2000, showConfirmButton: false }); return; }
+             if (isViewOnly) return;
+             const pointsInput = document.getElementById('inputPoints'); const pinInput = document.getElementById('inputPinEarn'); const btn = document.getElementById('btnEarn');
+             if (!pointsInput.value || pointsInput.value <= 0 || !pinInput.value) { Swal.fire({ icon:'warning', title:'資料不完整', text:'請輸入消費數量與核銷碼' }); return; }
+             callApi(btn, { action: 'add', userId: currentUserProfile.userId, displayName: currentUserProfile.displayName, points: pointsInput.value, storeId: currentStoreId, pin: pinInput.value }, (data) => { pinInput.value = ""; updateBalanceUI(data.totalPoints); Swal.fire({ icon: 'success', title: '集點成功', html: `<div style="font-size:1.2rem">獲得 <b>${data.addedPoints}</b> 點</div>`, timer: 2000, showConfirmButton: false }); });
+        }
+
+        function switchTab(tabName) {
+            window.scrollTo(0, 0); 
+            ['earn', 'redeem', 'game', 'history'].forEach(t => { document.getElementById('tab-' + t).classList.remove('active'); document.getElementById('page-' + t).classList.add('d-none'); });
+            document.getElementById('tab-' + tabName).classList.add('active'); document.getElementById('page-' + tabName).classList.remove('d-none');
+            if (tabName === 'redeem') loadRewards(); if (tabName === 'history') loadHistory();
+            setTimeout(function() { window.scrollTo(0, 0); }, 100);
+        }
+        
+        function loadRewards() {
+             if (!currentUserProfile) return; const listDiv = document.getElementById('rewardList'); let targetStoreId = currentStoreId;
+             if (isViewOnly) { const selectVal = document.getElementById('storeSelect').value; if (selectVal) targetStoreId = selectVal; else targetStoreId = 'store00'; }
+             listDiv.innerHTML = '<div class="text-center w-100 py-4" style="grid-column: span 2;"><div class="spinner-border text-success" role="status"></div><div class="small text-muted mt-2">更新庫存資訊...</div></div>';
+             fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: 'getRewards', userId: currentUserProfile.userId, storeId: targetStoreId }) })
+             .then(res => res.json()).then(data => {
+                 listDiv.innerHTML = ""; if(data.userBalance !== undefined) updateBalanceUI(data.userBalance);
+                 if (isViewOnly && targetStoreId === 'store00') listDiv.insertAdjacentHTML('beforeend', "<p class='text-center mt-2 text-muted' style='grid-column: span 2;'><i class='fas fa-arrow-up'></i> 請選擇上方店家以查看庫存</p>");
+                 if (!data.rewards || data.rewards.length === 0) { listDiv.innerHTML = "<p class='text-center w-100 mt-5 text-muted' style='grid-column: span 2;'>目前無可兌換商品</p>"; return; }
+                 data.rewards.forEach(item => {
+                     const isOutOfStock = item.stock <= 0; const imgUrl = item.image && item.image.startsWith('http') ? item.image : "https://via.placeholder.com/300x200?text=Taiwan+Beer";
+                     let btnHtml = isViewOnly ? `<button class="btn btn-secondary btn-redeem" disabled>請至門市兌換</button>` : (isOutOfStock ? `<button class="btn btn-secondary btn-redeem" disabled>已兌完</button>` : `<button class="btn btn-outline-success btn-redeem" onclick="askRedeem('${item.name}', ${item.cost})">兌換</button>`);
+                     let stockText = (targetStoreId === 'store00') ? "請選店" : `剩 ${item.stock}`; let stockClass = (targetStoreId !== 'store00' && isOutOfStock) ? "out" : "";
+                     const html = `<div class="reward-card"><img src="${imgUrl}" class="reward-img" alt="${item.name}"><div class="reward-body"><div><div class="reward-title">${item.name}</div><div class="reward-meta"><span class="text-warning fw-bold"><i class="fas fa-gem"></i> ${item.cost}</span><span class="stock-badge ${stockClass}">${stockText}</span></div></div>${btnHtml}</div></div>`;
+                     listDiv.insertAdjacentHTML('beforeend', html);
+                 });
+             }).catch(err => { listDiv.innerHTML = "<p class='text-danger text-center w-100' style='grid-column: span 2;'>載入失敗</p>"; });
+        }
+
+        function loadHistory() {
+             if (!currentUserProfile) return; const listDiv = document.getElementById('historyList');
+             listDiv.innerHTML = `<div class="text-center w-100 py-4"><div class="spinner-border text-success" role="status"></div></div>`;
+             fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: 'getHistory', userId: currentUserProfile.userId }) })
+             .then(res => res.json()).then(data => {
+                 listDiv.innerHTML = ""; if (!data.history || data.history.length === 0) { listDiv.innerHTML = "<p class='text-center w-100 mt-5 text-muted'>尚無交易紀錄</p>"; return; }
+                 data.history.forEach(item => { const isPositive = item.points > 0; const pointClass = isPositive ? 'points-add' : 'points-minus'; const pointSign = isPositive ? '+' : ''; const html = `<div class="history-item"><div class="history-info"><div class="history-action">${item.action}</div><div class="history-meta"><span class="me-2"><i class="far fa-clock"></i> ${item.date}</span><span><i class="fas fa-store"></i> ${item.store}</span></div></div><div class="history-points ${pointClass}">${pointSign}${item.points}</div></div>`; listDiv.insertAdjacentHTML('beforeend', html); });
+             }).catch(err => { listDiv.innerHTML = "<p class='text-danger text-center w-100'>載入失敗</p>"; });
+        }
+
+        function askRedeem(rewardName, cost) {
+             Swal.fire({ title: '兌換確認', html: `商品：<b>${rewardName}</b><br>扣除：<b class="text-danger">${cost}</b> 點<br><br><small>請店員輸入核銷碼</small>`, input: 'password', inputAttributes: { maxlength: 4, placeholder: 'PIN Code' }, showCancelButton: true, confirmButtonText: '確定兌換', confirmButtonColor: '#006633', cancelButtonText: '取消', reverseButtons: true
+             }).then((result) => { if (result.isConfirmed) { if (!result.value) { Swal.fire('錯誤', '請輸入核銷碼', 'error'); return; } callApi(null, { action: 'redeem', userId: currentUserProfile.userId, displayName: currentUserProfile.displayName, storeId: currentStoreId, pin: result.value, rewardName: rewardName, cost: cost }, (data) => { updateBalanceUI(data.totalPoints); loadRewards(); Swal.fire({ icon: 'success', title: '兌換成功', html: `您已兌換 <b>${data.redeemedItem}</b>`, }); }); } });
+        }
+
+        function callApi(btnElement, payload, successCallback) {
+             if (btnElement) { btnElement.disabled = true; btnElement.innerText = "處理中..."; } Swal.showLoading();
+             fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify(payload) })
+             .then(res => res.json()).then(data => { if (btnElement) { btnElement.disabled = false; btnElement.innerText = "確認集點"; } Swal.close(); if (data.status === 'success') successCallback(data); else Swal.fire({ icon:'error', title:'無法執行', text: data.message });
+             }).catch(err => { if (btnElement) btnElement.disabled = false; Swal.fire('錯誤', '網路連線異常', 'error'); });
+        }
+
+        function updateBalanceUI(points) { const el = document.getElementById('headerPoints'); el.innerText = points; el.classList.add('fade-in'); setTimeout(() => el.classList.remove('fade-in'), 500); }
+    </script>
 </body>
 </html>
