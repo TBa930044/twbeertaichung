@@ -294,7 +294,8 @@
     <script>
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwYI4M2RuswYcxoMy98Gr8WLinypnvZwrYAwtHsD84rX0unB26FKKx4u0dcuB9Ojo62/exec"; 
         const MY_LIFF_ID = "2008765350-4KBTGWMz"; 
-        
+        const API_KEY = "Ttl2026_Secure_Key!!"; // ★ 與後端一致的密鑰
+
         const urlParams = new URLSearchParams(window.location.search);
         let storeParam = urlParams.get('store');
         if (!storeParam && window.location.hash) {
@@ -306,6 +307,7 @@
 
         const currentStoreId = storeParam || 'store01'; 
         let currentUserProfile = null;
+        let currentIdToken = null; // 儲存 ID Token
         const isViewOnly = (currentStoreId === 'store00');
 
         window.onload = function() {
@@ -313,17 +315,13 @@
             document.getElementById('headerPoints').style.fontSize = "1.5rem";
 
             if (isViewOnly) {
-                // 使用 Unicode 編碼避免亂碼：集點查詢
                 document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-search me-1"></i> \u96c6\u9ede\u67e5\u8a62`;
                 document.getElementById('inputPoints').disabled = true;
-                // 僅供查詢
                 document.getElementById('inputPoints').placeholder = "\u50c5\u4f9b\u67e5\u8a62";
                 document.getElementById('inputPinEarn').disabled = true;
-                // 請至門市集點
                 document.getElementById('inputPinEarn').placeholder = "\u8acb\u81f3\u9580\u5e02\u96c6\u9ede";
                 const btn = document.getElementById('btnEarn');
                 btn.disabled = true;
-                // 此模式僅供查詢餘額
                 btn.innerText = "\u6b64\u6a21\u5f0f\u50c5\u4f9b\u67e5\u8a62\u9918\u984d";
                 document.getElementById('storeSelectArea').classList.remove('d-none');
                 loadStoreList(); 
@@ -339,6 +337,8 @@
                     }
                     liff.login({ redirectUri: loginRedirect });
                 } else {
+                    currentIdToken = liff.getIDToken();
+                    
                     liff.getProfile().then(profile => { 
                         currentUserProfile = profile;
                         if(profile.displayName) document.getElementById('userGreeting').innerText = `Hi, ${profile.displayName}`;
@@ -353,17 +353,25 @@
             }).catch(console.error);
         };
 
+        // ★ 通用 API 呼叫函式 (自動帶入 Key 和 Token)
+        function callBackend(payload) {
+            payload.auth_token = API_KEY;
+            payload.idToken = currentIdToken;
+            
+            return fetch(GAS_API_URL, { 
+                method: "POST", 
+                headers: { "Content-Type": "text/plain" }, 
+                body: JSON.stringify(payload) 
+            }).then(res => res.json());
+        }
+
         function checkBalanceAndRegister(userId, nickName) {
-            fetch(GAS_API_URL, { 
-                method: "POST", headers: { "Content-Type": "text/plain" }, 
-                body: JSON.stringify({ action: 'checkBalance', userId: userId }) 
-            })
-            .then(res => res.json())
+            callBackend({ action: 'checkBalance', userId: userId })
             .then(data => {
                 document.getElementById('headerPoints').style.fontSize = "3.8rem";
                 if(data.userBalance !== undefined) updateBalanceUI(data.userBalance);
                 
-                // ★ DEMO專用：已註解掉註冊檢查，讓新用戶直接進入畫面
+                // ★ DEMO專用：已註解掉註冊檢查
                 // if (data.isRegistered === false) {
                 //     showRegistrationModal(userId, nickName);
                 // }
@@ -424,18 +432,15 @@
         function registerUser(userId, data) {
             Swal.fire({ title: '資料建立中...', didOpen: () => { Swal.showLoading() } });
             var finalNickName = data.nickName || (currentUserProfile ? currentUserProfile.displayName : "未知暱稱");
-            fetch(GAS_API_URL, { 
-                method: "POST", headers: { "Content-Type": "text/plain" }, 
-                body: JSON.stringify({ 
-                    action: 'registerUser', 
-                    userId: userId, 
-                    displayName: finalNickName, 
-                    name: data.name, 
-                    phone: data.phone, 
-                    dob: data.dob 
-                }) 
+            
+            callBackend({ 
+                action: 'registerUser', 
+                userId: userId, 
+                displayName: finalNickName, 
+                name: data.name, 
+                phone: data.phone, 
+                dob: data.dob 
             })
-            .then(res => res.json())
             .then(resData => {
                 if (resData.status === 'success') {
                     Swal.fire({ icon: 'success', title: '註冊成功', text: '歡迎參加活動！', confirmButtonColor: '#006633' });
@@ -497,11 +502,12 @@
             wheel.style.transition = 'none';
             wheel.classList.add('wheel-loading');
 
-            fetch(GAS_API_URL, { 
-                method: "POST", headers: { "Content-Type": "text/plain" }, 
-                body: JSON.stringify({ action: 'playGame', userId: currentUserProfile.userId, displayName: currentUserProfile.displayName, storeId: currentStoreId }) 
+            callBackend({ 
+                action: 'playGame', 
+                userId: currentUserProfile.userId, 
+                displayName: currentUserProfile.displayName, 
+                storeId: currentStoreId 
             })
-            .then(res => res.json())
             .then(data => {
                 if(data.status !== 'success') {
                     wheel.classList.remove('wheel-loading');
@@ -567,8 +573,13 @@
 
         function submitWinnerInfo(prizeName, infoString) {
             Swal.fire({ title: '資料傳送中...', didOpen: () => { Swal.showLoading() } });
-            fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: 'submitWinnerInfo', userId: currentUserProfile.userId, prize: prizeName, info: infoString }) })
-            .then(res => res.json()).then(data => { Swal.fire({ icon: 'success', title: '資料已送出', text: '我們將盡快為您安排寄送！', confirmButtonColor: '#006633' }); });
+            callBackend({ 
+                action: 'submitWinnerInfo', 
+                userId: currentUserProfile.userId, 
+                prize: prizeName, 
+                info: infoString 
+            })
+            .then(data => { Swal.fire({ icon: 'success', title: '資料已送出', text: '我們將盡快為您安排寄送！', confirmButtonColor: '#006633' }); });
         }
 
         function resetWheel(targetDeg) {
@@ -578,8 +589,8 @@
 
         function loadStoreList() {
             const select = document.getElementById('storeSelect');
-            fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: 'getStoreList' }) })
-            .then(res => res.json()).then(data => { if(data.status === 'success') { select.innerHTML = '<option value="" disabled selected>請選擇欲查詢之店家...</option>'; data.stores.forEach(store => { const option = document.createElement('option'); option.value = store.id; option.text = store.name; select.appendChild(option); }); } }).catch(console.error);
+            callBackend({ action: 'getStoreList' })
+            .then(data => { if(data.status === 'success') { select.innerHTML = '<option value="" disabled selected>請選擇欲查詢之店家...</option>'; data.stores.forEach(store => { const option = document.createElement('option'); option.value = store.id; option.text = store.name; select.appendChild(option); }); } }).catch(console.error);
         }
 
         function doEarn() {
@@ -587,7 +598,30 @@
              if (isViewOnly) return;
              const pointsInput = document.getElementById('inputPoints'); const pinInput = document.getElementById('inputPinEarn'); const btn = document.getElementById('btnEarn');
              if (!pointsInput.value || pointsInput.value <= 0 || !pinInput.value) { Swal.fire({ icon:'warning', title:'資料不完整', text:'請輸入消費數量與核銷碼' }); return; }
-             callApi(btn, { action: 'add', userId: currentUserProfile.userId, displayName: currentUserProfile.displayName, points: pointsInput.value, storeId: currentStoreId, pin: pinInput.value }, (data) => { pinInput.value = ""; updateBalanceUI(data.totalPoints); Swal.fire({ icon: 'success', title: '集點成功', html: `<div style="font-size:1.2rem">獲得 <b>${data.addedPoints}</b> 點</div>`, timer: 2000, showConfirmButton: false }); });
+             
+             // 修正：驗證並鎖定按鈕
+             btn.disabled = true; btn.innerText = "處理中...";
+
+             callBackend({ 
+                 action: 'add', 
+                 userId: currentUserProfile.userId, 
+                 displayName: currentUserProfile.displayName, 
+                 points: pointsInput.value, 
+                 storeId: currentStoreId, 
+                 pin: pinInput.value 
+             }).then(data => {
+                 btn.disabled = false; btn.innerText = "確認集點";
+                 if (data.status === 'success') {
+                     pinInput.value = ""; // 清空 PIN
+                     updateBalanceUI(data.totalPoints);
+                     Swal.fire({ icon: 'success', title: '集點成功', html: `<div style="font-size:1.2rem">獲得 <b>${data.addedPoints}</b> 點</div>`, timer: 2000, showConfirmButton: false });
+                 } else {
+                     Swal.fire({ icon:'error', title:'無法執行', text: data.message });
+                 }
+             }).catch(err => { 
+                 btn.disabled = false; 
+                 Swal.fire('錯誤', '網路連線異常', 'error'); 
+             });
         }
 
         function switchTab(tabName) {
@@ -602,8 +636,13 @@
              if (!currentUserProfile) return; const listDiv = document.getElementById('rewardList'); let targetStoreId = currentStoreId;
              if (isViewOnly) { const selectVal = document.getElementById('storeSelect').value; if (selectVal) targetStoreId = selectVal; else targetStoreId = 'store00'; }
              listDiv.innerHTML = '<div class="text-center w-100 py-4" style="grid-column: span 2;"><div class="spinner-border text-success" role="status"></div><div class="small text-muted mt-2">更新庫存資訊...</div></div>';
-             fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: 'getRewards', userId: currentUserProfile.userId, storeId: targetStoreId }) })
-             .then(res => res.json()).then(data => {
+             
+             callBackend({ 
+                 action: 'getRewards', 
+                 userId: currentUserProfile.userId, 
+                 storeId: targetStoreId 
+             })
+             .then(data => {
                  listDiv.innerHTML = ""; if(data.userBalance !== undefined) updateBalanceUI(data.userBalance);
                  if (isViewOnly && targetStoreId === 'store00') listDiv.insertAdjacentHTML('beforeend', "<p class='text-center mt-2 text-muted' style='grid-column: span 2;'><i class='fas fa-arrow-up'></i> 請選擇上方店家以查看庫存</p>");
                  if (!data.rewards || data.rewards.length === 0) { listDiv.innerHTML = "<p class='text-center w-100 mt-5 text-muted' style='grid-column: span 2;'>目前無可兌換商品</p>"; return; }
@@ -620,8 +659,12 @@
         function loadHistory() {
              if (!currentUserProfile) return; const listDiv = document.getElementById('historyList');
              listDiv.innerHTML = `<div class="text-center w-100 py-4"><div class="spinner-border text-success" role="status"></div></div>`;
-             fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: 'getHistory', userId: currentUserProfile.userId }) })
-             .then(res => res.json()).then(data => {
+             
+             callBackend({ 
+                 action: 'getHistory', 
+                 userId: currentUserProfile.userId 
+             })
+             .then(data => {
                  listDiv.innerHTML = ""; if (!data.history || data.history.length === 0) { listDiv.innerHTML = "<p class='text-center w-100 mt-5 text-muted'>尚無交易紀錄</p>"; return; }
                  data.history.forEach(item => { const isPositive = item.points > 0; const pointClass = isPositive ? 'points-add' : 'points-minus'; const pointSign = isPositive ? '+' : ''; const html = `<div class="history-item"><div class="history-info"><div class="history-action">${item.action}</div><div class="history-meta"><span class="me-2"><i class="far fa-clock"></i> ${item.date}</span><span><i class="fas fa-store"></i> ${item.store}</span></div></div><div class="history-points ${pointClass}">${pointSign}${item.points}</div></div>`; listDiv.insertAdjacentHTML('beforeend', html); });
              }).catch(err => { listDiv.innerHTML = "<p class='text-danger text-center w-100'>載入失敗</p>"; });
@@ -629,14 +672,27 @@
 
         function askRedeem(rewardName, cost) {
              Swal.fire({ title: '兌換確認', html: `商品：<b>${rewardName}</b><br>扣除：<b class="text-danger">${cost}</b> 點<br><br><small>請店員輸入核銷碼</small>`, input: 'password', inputAttributes: { maxlength: 4, placeholder: 'PIN Code' }, showCancelButton: true, confirmButtonText: '確定兌換', confirmButtonColor: '#006633', cancelButtonText: '取消', reverseButtons: true
-             }).then((result) => { if (result.isConfirmed) { if (!result.value) { Swal.fire('錯誤', '請輸入核銷碼', 'error'); return; } callApi(null, { action: 'redeem', userId: currentUserProfile.userId, displayName: currentUserProfile.displayName, storeId: currentStoreId, pin: result.value, rewardName: rewardName, cost: cost }, (data) => { updateBalanceUI(data.totalPoints); loadRewards(); Swal.fire({ icon: 'success', title: '兌換成功', html: `您已兌換 <b>${data.redeemedItem}</b>`, }); }); } });
-        }
-
-        function callApi(btnElement, payload, successCallback) {
-             if (btnElement) { btnElement.disabled = true; btnElement.innerText = "處理中..."; } Swal.showLoading();
-             fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify(payload) })
-             .then(res => res.json()).then(data => { if (btnElement) { btnElement.disabled = false; btnElement.innerText = "確認集點"; } Swal.close(); if (data.status === 'success') successCallback(data); else Swal.fire({ icon:'error', title:'無法執行', text: data.message });
-             }).catch(err => { if (btnElement) btnElement.disabled = false; Swal.fire('錯誤', '網路連線異常', 'error'); });
+             }).then((result) => { if (result.isConfirmed) { if (!result.value) { Swal.fire('錯誤', '請輸入核銷碼', 'error'); return; } 
+                 
+                 callBackend({ 
+                     action: 'redeem', 
+                     userId: currentUserProfile.userId, 
+                     displayName: currentUserProfile.displayName, 
+                     storeId: currentStoreId, 
+                     pin: result.value, 
+                     rewardName: rewardName, 
+                     cost: cost 
+                 })
+                 .then(data => { 
+                     if(data.status === 'success') {
+                         updateBalanceUI(data.totalPoints); 
+                         loadRewards(); 
+                         Swal.fire({ icon: 'success', title: '兌換成功', html: `您已兌換 <b>${data.redeemedItem}</b>`, }); 
+                     } else {
+                         Swal.fire({ icon:'error', title:'無法執行', text: data.message });
+                     }
+                 }); 
+             } });
         }
 
         function updateBalanceUI(points) { const el = document.getElementById('headerPoints'); el.innerText = points; el.classList.add('fade-in'); setTimeout(() => el.classList.remove('fade-in'), 500); }
