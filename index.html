@@ -161,6 +161,13 @@
             background-color: rgba(0,0,0,0.05);
             border-radius: 5px;
         }
+
+        /* ★ 修改處 1：防止瀏覽器記憶密碼的 CSS Class */
+        .safe-pin-input {
+            -webkit-text-security: disc !important; /* 讓文字變圓點 (Chrome/Safari/iOS) */
+            text-security: disc !important;
+            font-family: text-security-disc; /* Firefox 備用方案 */
+        }
     </style>
 </head>
 <body>
@@ -210,7 +217,14 @@
                 </div>
                 <div class="mb-3">
                     <label class="text-muted small mb-2 fw-bold">請店員輸入核銷碼</label>
-                    <input type="password" id="inputPinEarn" class="form-control form-control-custom" placeholder="PIN Code" maxlength="4">
+                    <input type="tel" 
+                           id="inputPinEarn" 
+                           class="form-control form-control-custom safe-pin-input" 
+                           placeholder="PIN Code" 
+                           maxlength="4" 
+                           inputmode="numeric" 
+                           pattern="[0-9]*" 
+                           autocomplete="off">
                 </div>
                 <button id="btnEarn" class="btn-action" onclick="doEarn()" disabled>連線中...</button>
             </div>
@@ -315,13 +329,17 @@
             document.getElementById('headerPoints').style.fontSize = "1.5rem";
 
             if (isViewOnly) {
+                // 使用 Unicode 編碼避免亂碼：集點查詢
                 document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-search me-1"></i> \u96c6\u9ede\u67e5\u8a62`;
                 document.getElementById('inputPoints').disabled = true;
+                // 僅供查詢
                 document.getElementById('inputPoints').placeholder = "\u50c5\u4f9b\u67e5\u8a62";
                 document.getElementById('inputPinEarn').disabled = true;
+                // 請至門市集點
                 document.getElementById('inputPinEarn').placeholder = "\u8acb\u81f3\u9580\u5e02\u96c6\u9ede";
                 const btn = document.getElementById('btnEarn');
                 btn.disabled = true;
+                // 此模式僅供查詢餘額
                 btn.innerText = "\u6b64\u6a21\u5f0f\u50c5\u4f9b\u67e5\u8a62\u9918\u984d";
                 document.getElementById('storeSelectArea').classList.remove('d-none');
                 loadStoreList(); 
@@ -670,8 +688,28 @@
              }).catch(err => { listDiv.innerHTML = "<p class='text-danger text-center w-100'>載入失敗</p>"; });
         }
 
+        // ★ 修改處 3：askRedeem 的 SweetAlert 設定
         function askRedeem(rewardName, cost) {
-             Swal.fire({ title: '兌換確認', html: `商品：<b>${rewardName}</b><br>扣除：<b class="text-danger">${cost}</b> 點<br><br><small>請店員輸入核銷碼</small>`, input: 'password', inputAttributes: { maxlength: 4, placeholder: 'PIN Code' }, showCancelButton: true, confirmButtonText: '確定兌換', confirmButtonColor: '#006633', cancelButtonText: '取消', reverseButtons: true
+             Swal.fire({ 
+                 title: '兌換確認', 
+                 html: `商品：<b>${rewardName}</b><br>扣除：<b class="text-danger">${cost}</b> 點<br><br><small>請店員輸入核銷碼</small>`, 
+                 // ★ 改成 text 並加上防記憶樣式
+                 input: 'text', 
+                 inputAttributes: { 
+                     maxlength: 4, 
+                     placeholder: 'PIN Code',
+                     autocapitalize: 'off',
+                     autocorrect: 'off',
+                     autocomplete: 'off',
+                     inputmode: 'numeric',
+                     pattern: '[0-9]*',
+                     style: '-webkit-text-security: disc; text-security: disc;' // 讓 Swal 輸入框也變圓點
+                 }, 
+                 showCancelButton: true, 
+                 confirmButtonText: '確定兌換', 
+                 confirmButtonColor: '#006633', 
+                 cancelButtonText: '取消', 
+                 reverseButtons: true
              }).then((result) => { if (result.isConfirmed) { if (!result.value) { Swal.fire('錯誤', '請輸入核銷碼', 'error'); return; } 
                  
                  callBackend({ 
