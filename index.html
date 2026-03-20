@@ -389,10 +389,10 @@
                 document.getElementById('headerPoints').style.fontSize = "3.8rem";
                 if(data.userBalance !== undefined) updateBalanceUI(data.userBalance);
                 
-                // ★ DEMO專用：已註解掉註冊檢查
-                // if (data.isRegistered === false) {
-                //     showRegistrationModal(userId, nickName);
-                // }
+                // ★ 正式上線：開啟註冊檢查
+                if (data.isRegistered === false) {
+                    showRegistrationModal(userId, nickName);
+                }
             })
             .catch(err => { document.getElementById('headerPoints').innerText = "---"; });
         }
