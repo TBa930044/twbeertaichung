@@ -608,8 +608,28 @@
 
         function loadStoreList() {
             const select = document.getElementById('storeSelect');
+            // 先顯示連線中
+            select.innerHTML = '<option value="" disabled selected>連線讀取中...</option>';
+            
             callBackend({ action: 'getStoreList' })
-            .then(data => { if(data.status === 'success') { select.innerHTML = '<option value="" disabled selected>請選擇欲查詢之店家...</option>'; data.stores.forEach(store => { const option = document.createElement('option'); option.value = store.id; option.text = store.name; select.appendChild(option); }); } }).catch(console.error);
+            .then(data => { 
+                if(data.status === 'success') { 
+                    select.innerHTML = '<option value="" disabled selected>請選擇欲查詢之店家...</option>'; 
+                    data.stores.forEach(store => { 
+                        const option = document.createElement('option'); 
+                        option.value = store.id; 
+                        option.text = store.name; 
+                        select.appendChild(option); 
+                    }); 
+                } else {
+                    // ★ 如果後端拒絕，把錯誤原因顯示出來
+                    select.innerHTML = '<option value="" disabled>載入失敗</option>';
+                    Swal.fire('載入清單失敗', data.message, 'error'); 
+                } 
+            }).catch(err => { 
+                select.innerHTML = '<option value="" disabled>網路連線異常</option>';
+                console.error(err); 
+            });
         }
 
         function doEarn() {
