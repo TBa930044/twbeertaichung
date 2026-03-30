@@ -372,10 +372,15 @@
             }).catch(console.error);
         };
 
-        // ★ 通用 API 呼叫函式 (自動帶入 Key 和 Token)
+        // ★ 通用 API 呼叫函式 (自動帶入 Key、Token 與 User ID)
         function callBackend(payload) {
             payload.auth_token = API_KEY;
             payload.idToken = currentIdToken;
+            
+            // ★ 新增這段防呆機制：自動帶入備用的 User ID
+            if (currentUserProfile && currentUserProfile.userId) {
+                payload.userId = currentUserProfile.userId;
+            }
             
             return fetch(GAS_API_URL, { 
                 method: "POST", 
