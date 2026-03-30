@@ -329,20 +329,16 @@
             document.getElementById('headerPoints').style.fontSize = "1.5rem";
 
             if (isViewOnly) {
-                // 使用 Unicode 編碼避免亂碼：集點查詢
                 document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-search me-1"></i> \u96c6\u9ede\u67e5\u8a62`;
                 document.getElementById('inputPoints').disabled = true;
-                // 僅供查詢
                 document.getElementById('inputPoints').placeholder = "\u50c5\u4f9b\u67e5\u8a62";
                 document.getElementById('inputPinEarn').disabled = true;
-                // 請至門市集點
                 document.getElementById('inputPinEarn').placeholder = "\u8acb\u81f3\u9580\u5e02\u96c6\u9ede";
                 const btn = document.getElementById('btnEarn');
                 btn.disabled = true;
-                // 此模式僅供查詢餘額
                 btn.innerText = "\u6b64\u6a21\u5f0f\u50c5\u4f9b\u67e5\u8a62\u9918\u984d";
                 document.getElementById('storeSelectArea').classList.remove('d-none');
-                loadStoreList(); 
+                // ❌ (已刪除) 原本在這裡呼叫的 loadStoreList() 移到下面了
             } else {
                 document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-map-marker-alt me-1"></i> ${currentStoreId}`;
             }
@@ -355,16 +351,21 @@
                     }
                     liff.login({ redirectUri: loginRedirect });
                 } else {
-                    currentIdToken = liff.getIDToken();
+                    currentIdToken = liff.getIDToken(); // ★ 拿到通關 Token 了
                     
                     liff.getProfile().then(profile => { 
                         currentUserProfile = profile;
                         if(profile.displayName) document.getElementById('userGreeting').innerText = `Hi, ${profile.displayName}`;
+                        
                         if(!isViewOnly) {
                             const btn = document.getElementById('btnEarn');
                             btn.disabled = false;
                             btn.innerText = "確認集點";
+                        } else {
+                            // ✅ (新增) 移到這裡：確認登入成功、拿到 Token 後，才去抓店家清單
+                            loadStoreList(); 
                         }
+                        
                         checkBalanceAndRegister(profile.userId, profile.displayName);
                     });
                 }
