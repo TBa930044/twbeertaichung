@@ -338,9 +338,9 @@
                 btn.disabled = true;
                 btn.innerText = "\u6b64\u6a21\u5f0f\u50c5\u4f9b\u67e5\u8a62\u9918\u984d";
                 document.getElementById('storeSelectArea').classList.remove('d-none');
-                // ❌ (已刪除) 原本在這裡呼叫的 loadStoreList() 移到下面了
             } else {
-                document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-map-marker-alt me-1"></i> ${currentStoreId}`;
+                // ★ 修改處 1：一開始先顯示轉圈圈與「載入店名...」
+                document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-spinner fa-spin me-1"></i> 載入店名...`;
             }
 
             liff.init({ liffId: MY_LIFF_ID }).then(() => {
@@ -351,7 +351,7 @@
                     }
                     liff.login({ redirectUri: loginRedirect });
                 } else {
-                    currentIdToken = liff.getIDToken(); // ★ 拿到通關 Token 了
+                    currentIdToken = liff.getIDToken(); 
                     
                     liff.getProfile().then(profile => { 
                         currentUserProfile = profile;
@@ -361,8 +361,24 @@
                             const btn = document.getElementById('btnEarn');
                             btn.disabled = false;
                             btn.innerText = "確認集點";
+                            
+                            // ★ 修改處 2：向後端查詢真實店名並替換
+                            callBackend({ action: 'getStoreList' }).then(data => {
+                                if (data.status === 'success') {
+                                    // 在清單中尋找符合 currentStoreId 的店家
+                                    const storeObj = data.stores.find(s => s.id === currentStoreId);
+                                    // 如果有找到就顯示真實店名，找不到就顯示原本的 storeXX
+                                    const realName = storeObj ? storeObj.name : currentStoreId;
+                                    document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-map-marker-alt me-1"></i> ${realName}`;
+                                } else {
+                                    document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-map-marker-alt me-1"></i> ${currentStoreId}`;
+                                }
+                            }).catch(() => {
+                                // 萬一連線失敗，退回顯示 storeXX
+                                document.getElementById('storeDisplay').innerHTML = `<i class="fas fa-map-marker-alt me-1"></i> ${currentStoreId}`;
+                            });
+
                         } else {
-                            // ✅ (新增) 移到這裡：確認登入成功、拿到 Token 後，才去抓店家清單
                             loadStoreList(); 
                         }
                         
